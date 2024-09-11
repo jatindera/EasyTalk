@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT-inspired Chat Application</title>
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #202123;
+            margin: 0;
+            color: #d1d5db;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar container with space reserved for the button */
+        .sidebar {
+            background-color: #000;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* Ensures the button stays at the bottom */
+        }
+
+        .sidebar h3 {
+            margin-top: 20px;
+        }
+
+        .sidebar ul {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        /* Middle Block Header */
+        .header {
+            background-color: #343541;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: calc(100% - 250px);
+            left: 250px;
+            z-index: 1000;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            margin-left: 250px;
+            margin-top: 80px;
+            /* Adding gap from header */
+            padding-left: 20px;
+            padding-right: 20px;
+            flex: 1;
+            overflow-y: auto;
+            /* Scrollbar for chat section */
+            max-height: calc(100vh - 160px);
+            /* Height to allow footer */
+            box-sizing: border-box;
+        }
+
+        .chat-bubble {
+            background-color: #40414f;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-width: 80%;
+        }
+
+        .chat-bubble.user {
+            background-color: #056162;
+            color: white;
+            align-self: flex-end;
+        }
+
+        /* Footer */
+        .chat-footer {
+            background-color: #343541;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            width: calc(100% - 250px);
+            left: 250px;
+            border-top: 1px solid #3e3f44;
+            box-sizing: border-box;
+        }
+
+        .chat-footer input {
+            width: 70%;
+            padding: 15px;
+            background-color: #40414f;
+            border: 1px solid #575860;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .chat-footer button {
+            background-color: #19c37d;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .chat-footer button:hover {
+            background-color: #17a871;
+        }
+
+        /* Scrollable container for chat history */
+        .chat-history {
+            overflow-y: auto;
+            flex-grow: 1;
+            /* Ensures the history takes up all available space */
+            margin-bottom: 10px;
+            /* Adds space above the toggle button */
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            padding: 10px 20px;
+            background-color: #19c37d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: #17a871;
+        }
+
+        /* Light Theme Styles */
+        .light-theme {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .light-theme .header {
+            background-color: #f0f0f0;
+        }
+
+        .light-theme .sidebar {
+            background-color: #f0f0f0;
+            color: #000000;
+        }
+
+        .light-theme .chat-container {
+            background-color: #f9f9f9;
+        }
+
+        .light-theme .chat-footer {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h3>Chat History</h3>
+        
+        <!-- Scrollable chat history -->
+        <div class="chat-history">
+            <ul>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+                <li>Chat 1</li>
+                <li>Chat 2</li>
+                <li>Chat 3</li>
+            </ul>
+        </div>
+    
+        <!-- Fixed theme toggle button at the bottom -->
+        <button class="theme-toggle-btn" onclick="toggleTheme()">Toggle Theme</button>
+    </div>
+
+    <!-- Middle Block Header -->
+    <div class="header">
+        <div class="logo">
+            <h2>ChatGPT-inspired App</h2>
+        </div>
+        <div class="user-profile">
+            <img src="https://via.placeholder.com/40" alt="User Profile" style="border-radius: 50%;">
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <div class="chat-bubble bot">
+            Hello! How can I assist you today?
+        </div>
+        <div class="chat-bubble user">
+            Can you tell me about today's weather?
+        </div>
+        <div class="chat-bubble bot">
+            Sure! It's sunny and warm with a slight breeze.
+        </div>
+    </div>
+
+    <!-- Footer for Typing Messages -->
+    <div class="chat-footer">
+        <input type="text" placeholder="Type a message...">
+        <button>Send</button>
+    </div>
+
+</body>
+
+</html>

@@ -1,14 +1,15 @@
 from fastapi import FastAPI, Depends
-#Relative Path
-from .db.database import Base, engine
-from .api.v1 import user_routes
+
+# Relative Path
+from .db.database import create_tables
+from .api import company_name_routes, general_chat_route
 
 
 app = FastAPI()
 
 # Create the database tables (if not done in database.py)
-Base.metadata.create_all(bind=engine)
+# create_tables() # using alembic to create tables
 
-# Include the user and product routes
-app.include_router(user_routes.router, prefix="/api/v1")
-
+# Include the NameCrafter routes
+app.include_router(company_name_routes.router)
+app.include_router(general_chat_route.router)
