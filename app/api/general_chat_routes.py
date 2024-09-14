@@ -3,8 +3,8 @@ from app.services.langchain_service import general_chat  # Import the general_ch
 from app.utils.chat_utils import generate_session_id  # Import the generate_session_id function
 
 router = APIRouter(
-    prefix="/api/chat",
-    tags=["Chat API v1.0"],
+    prefix="/api",
+    tags=["Chat API"],
 )
 
 @router.post("/chat")
