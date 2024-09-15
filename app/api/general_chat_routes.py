@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.services.langchain_service import general_chat  # Import the general_chat function from the service
 from app.utils.chat_utils import generate_session_id  # Import the generate_session_id function
+from app.services.user_service import get_current_user
 
 router = APIRouter(
     prefix="/api",
@@ -8,7 +9,7 @@ router = APIRouter(
 )
 
 @router.post("/chat")
-def chat_endpoint(query: str, new_chat: bool = False):
+def chat_endpoint(query: str, new_chat: bool = False, user: str = Depends(get_current_user)):
     # If it's a new chat, generate a new session ID
     if new_chat:
         session_id = generate_session_id()

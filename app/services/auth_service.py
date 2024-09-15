@@ -1,75 +1,89 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2AuthorizationCodeBearer
-from authlib.integrations.starlette_client import OAuth
-from starlette.config import Config
-from starlette.requests import Request
+from fastapi import HTTPException
+from fastapi.security import HTTPBearer
 import os
-from dotenv import load_dotenv
-import httpx
-load_dotenv()
+from jose import jwt, JWTError
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
+import requests
+from datetime import datetime
 
-# Load environment variables
-config = Config(".env")
 
-oauth = OAuth(config)
-azure_ad = oauth.register(
-    name='azure_ad',
-    client_id=os.getenv("AZURE_AD_CLIENT_ID"),
-    client_secret=os.getenv("AZURE_AD_CLIENT_SECRET"),
-    authorize_url=f"{os.getenv('AZURE_AD_AUTHORITY')}/oauth2/v2.0/authorize",
-    token_endpoint=f"{os.getenv('AZURE_AD_AUTHORITY')}/oauth2/v2.0/token",
-    jwks_uri=f"https://login.microsoftonline.com/{os.getenv('AZURE_AD_TENANT_ID')}/discovery/v2.0/keys",
-    client_kwargs={'scope': os.getenv("AZURE_AD_SCOPES")},
-    redirect_uri=os.getenv("AZURE_AD_REDIRECT_URI")
-)
+# Configuration
+AZURE_AD_TENANT_ID = os.getenv("AZURE_AD_TENANT_ID")
+AZURE_AD_CLIENT_ID = os.getenv("AZURE_AD_CLIENT_ID")
+AZURE_AD_SCOPES = os.getenv("AZURE_AD_SCOPES")
+AZURE_AD_REDIRECT_URI = os.getenv("AZURE_AD_REDIRECT_URI")
+AZURE_AD_AUTHORITY = os.getenv('AZURE_AD_AUTHORITY')
+AZURE_AD_CLIENT_SECRET = os.getenv("AZURE_AD_CLIENT_SECRET")
+ISSUER = f"https://sts.windows.net/{AZURE_AD_TENANT_ID}/"
+JWKS_URL = f"https://login.microsoftonline.com/{AZURE_AD_TENANT_ID}/discovery/v2.0/keys"
+ALGORITHM = "RS256"
+AUDIENCE = f"api://{AZURE_AD_CLIENT_ID}"
 
-oauth2_scheme = OAuth2AuthorizationCodeBearer(
-    authorizationUrl=f'https://login.microsoftonline.com/{os.getenv("AZURE_TENANT_ID")}/oauth2/v2.0/authorize',
-    tokenUrl=f'https://login.microsoftonline.com/{os.getenv("AZURE_TENANT_ID")}/oauth2/v2.0/token'
-)
 
-# Redirect user to Azure AD for login
-async def login(request: Request):
-    redirect_uri = request.url_for('auth_callback')
-    print(request)
-    print(redirect_uri)
-    return await azure_ad.authorize_redirect(request, redirect_uri)
+httpBearer = HTTPBearer()
 
-# Handle the callback after user authentication
-async def auth_callback(request: Request):
+# Fetch and cache the JWKS (public keys) from Azure AD
+def get_jwks():
+    response = requests.get(JWKS_URL)
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail="Failed to fetch JWKS")
+    return {key['kid']: key for key in response.json()['keys']}
+
+
+def validate_jwt(token):
     try:
-        # Get the token from Azure AD
-        token = await azure_ad.authorize_access_token(request)
-        # print("*" * 50)
-        # print(token)
-        # print("*" * 50)
-        nonce = token.get('userinfo').get('nonce')
-        # Parse the ID token
-        user_info = await oauth.azure_ad.parse_id_token(token=token, nonce=nonce)
-        
-        if not user_info:
-            raise HTTPException(status_code=401, detail="Authentication failed")
-        
-        request.session['user'] = dict(user_info)
+        # Decode the token header to get the key ID (kid)
+        headers = jwt.get_unverified_header(token)
+        kid = headers.get('kid')
 
-        return {"user_info": user_info}
+        # Fetch the public keys from Azure AD
+        keys = get_jwks()
 
-    except httpx.HTTPStatusError as e:
-        # This will catch specific HTTP errors
-        print(f"HTTP Error occurred: {e.response.text}")
-        raise HTTPException(status_code=e.response.status_code, detail=f"HTTP Error: {e.response.text}")
+        # Get the corresponding JWK for this token
+        if kid not in keys:
+            raise HTTPException(status_code=401, detail="Token validation error: Key ID not found.")
 
-    except Exception as e:
-        # Catch any other exception and log the details
-        print(f"General Error occurred: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"General Error: {str(e)}")
-    
-async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
-    try:
-        response = await oauth.azure.parse_id_token(request, token)
-        return response
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
+        key = keys[kid]
+
+        # print(key)
+
+        # Decode and validate the token
+        claims = jwt.decode(
+            token,
+            key=key,
+            audience=AUDIENCE,  # Replace with your API's full scope
+            algorithms=['RS256'],  # Azure AD uses RS256 for token signing
+            options={"verify_aud": True}  # Ensure audience claim is validated
         )
+        
+        # Validate issuer
+        if claims.get('iss') != ISSUER:
+            raise HTTPException(status_code=401, detail="Invalid issuer")
+
+        # Validate audience
+        if claims.get('aud') != AUDIENCE:
+            raise HTTPException(status_code=401, detail="Invalid audience")
+
+        # Validate expiration
+        if claims.get('exp') < datetime.now().timestamp():
+            raise HTTPException(status_code=401, detail="Token has expired")
+        
+        # Validate client id
+        if claims.get('appid') != AZURE_AD_CLIENT_ID:
+            raise HTTPException(status_code=401, detail="Invalid client id")
+        
+        # Optional: Validate tenant ID if you have specific tenant requirements
+        if claims.get('tid') != AZURE_AD_TENANT_ID:
+            raise HTTPException(status_code=401, detail="Invalid tenant ID")
+    
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"Token validation error: {str(e)}")
+    
+    return claims
+
+    
+    
+
+    
+    
+

@@ -10,7 +10,7 @@ from app.models.company_name_models import CompanyNameSuggestionDBModel
 
 router = APIRouter(
     prefix="/api/name-crafter",
-    tags=["Company Name Crafter API v1.0"],
+    tags=["Company Name Crafter API"],
 )
 
 
