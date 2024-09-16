@@ -43,14 +43,14 @@ def validate_jwt(token):
         if kid not in keys:
             raise HTTPException(status_code=401, detail="Token validation error: Key ID not found.")
 
-        key = keys[kid]
+        public_key = keys[kid]
 
-        # print(key)
+        # print(public_key)
 
         # Decode and validate the token
         claims = jwt.decode(
             token,
-            key=key,
+            key=public_key,
             audience=AUDIENCE,  # Replace with your API's full scope
             algorithms=['RS256'],  # Azure AD uses RS256 for token signing
             options={"verify_aud": True}  # Ensure audience claim is validated

@@ -9,7 +9,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     first_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=True)
-    provider = Column(String(50), nullable=True)
+    provider_name = Column(String(50), nullable=True)
     provider_id = Column(String(255), nullable=True)
     role = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))

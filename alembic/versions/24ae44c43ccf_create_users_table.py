@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('email', sa.String(255), nullable=False, unique=True),
         sa.Column('first_name', sa.String(100), nullable=True),
         sa.Column('last_name', sa.String(100), nullable=True),
-        sa.Column('provider', sa.String(50), nullable=False),  # e.g., 'google', 'azure'
+        sa.Column('provider_name', sa.String(50), nullable=False),  # e.g., 'google', 'azure'
         sa.Column('provider_id', sa.String(255), nullable=False, unique=True),  # Unique ID from SSO provider
         sa.Column('role', sa.String(50), nullable=False, default='user'),
         sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),

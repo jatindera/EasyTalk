@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 
 from app.db.database import create_tables
-from app.api import company_name_routes, general_chat_routes, user_routes, auth_routes
+from app.routes import llm_chat_routes, user_routes
 from app.services.user_service import get_current_user
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,19 +27,12 @@ app.add_middleware(
 # create_tables() # using alembic to create tables
 
 # Include the NameCrafter routes
-app.include_router(company_name_routes.router)
-app.include_router(auth_routes.router)
+# app.include_router(company_name_routes.router)
 app.include_router(user_routes.router)
-app.include_router(general_chat_routes.router)
+app.include_router(llm_chat_routes.router)
 
 
 
-@app.get("/public")
-async def public_route():
-    return {"message": "This is a public route!"}
 
-@app.get("/secure")
-async def secure_page(user: str = Depends(get_current_user)):
-    return {"user": user}
 
 
