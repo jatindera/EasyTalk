@@ -1,0 +1,49 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.mainContent {
+  background-color: #1c1c1e;
+  color: #fff;
+}
+
+.actionCard {
+  width: 220px;
+  background-color: #2c2c2e;
+  border: none;
+  color: #fff;
+}
+
+.card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+/* styles/Home.module.css */
+.chat-label {
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.chat-label:hover {
+  background-color: #495057; /* Change this color to your desired hover color */
+  border-radius: 4px; /* Optional: Rounded corners on hover */
+}
+
+.custom-input::placeholder {
+  color: #ffffff !important; /* Change placeholder color to white */
+  opacity: 1; /* Ensure the color is fully applied */
+}
+
+.custom-input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #ffffff !important;
+}
+
+.custom-input::-ms-input-placeholder { /* Microsoft Edge */
+  color: #ffffff !important;
+}

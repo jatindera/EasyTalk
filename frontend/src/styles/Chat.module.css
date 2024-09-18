@@ -1,0 +1,18 @@
+.chatContainer {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    max-width: 800px;
+    margin: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+  }
+  
+  .chatWindow {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+  }
+  
