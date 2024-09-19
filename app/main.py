@@ -9,6 +9,7 @@ app = FastAPI()
 
 # Define the list of allowed origins (you can limit this to specific origins)
 origins = [
+    "http://localhost:3000",
     "http://localhost:8000",
     "https://login.microsoftonline.com/",
 ]

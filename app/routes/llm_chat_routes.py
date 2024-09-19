@@ -5,6 +5,8 @@ from app.utils.chat_utils import generate_session_id  # Import the generate_sess
 from app.services.user_service import get_current_user, get_user_by_email, create_new_user
 from app.db.database import get_db
 from app.schemas.user_schemas import UserCreate
+from app.schemas.chat_schemas import ChatRequest
+from app.services.langchain_service import general_chat
 
 
 router = APIRouter(
@@ -12,8 +14,11 @@ router = APIRouter(
     tags=["Chat API"],
 )
 
+
 @router.post("/llm-chat")
-def llm_chat(query: str, chatSessionId: str = None, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    query = request.query
+    chatSessionId = request.chatSessionId
     # Step 1: Get the user's email from the authenticated `user` object
     email = user["email"]
     
@@ -40,7 +45,6 @@ def llm_chat(query: str, chatSessionId: str = None, user: dict = Depends(get_cur
     if new_chat:
         # Step 4: If it's a new chat, generate a new session ID
         chatSessionId = generate_session_id()
-        print(chatSessionId)
         # Optionally, create a new chat session in the database
         # create_new_chat_session(db, user_record.id, session_id)
     # else:
@@ -52,7 +56,9 @@ def llm_chat(query: str, chatSessionId: str = None, user: dict = Depends(get_cur
     #         create_new_chat_session(db, user_record.id, session_id)
 
     # # Step 6: Call the generate_llm_response function with the session ID
-    # result = generate_llm_response(query, session_id)
+    result = general_chat(query, chatSessionId)
+    print(result)
+    return result
     
     # # Step 7: Save the query and result to the chat history (database or other storage)
     # save_chat_to_database(db, session_id, query, result)

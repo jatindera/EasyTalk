@@ -35,18 +35,17 @@ def validate_jwt(token):
         # Decode the token header to get the key ID (kid)
         headers = jwt.get_unverified_header(token)
         kid = headers.get('kid')
-
+        
         # Fetch the public keys from Azure AD
         keys = get_jwks()
-
+        
         # Get the corresponding JWK for this token
         if kid not in keys:
             raise HTTPException(status_code=401, detail="Token validation error: Key ID not found.")
 
         public_key = keys[kid]
 
-        # print(public_key)
-
+        
         # Decode and validate the token
         claims = jwt.decode(
             token,
