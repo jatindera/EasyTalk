@@ -51,8 +51,8 @@ def get_user_by_email(email: str,db: Session = Depends(get_db)) -> User:
     
     return user
 
-def create_new_user(userCreate: user_schemas.UserCreate,db: Session = Depends(get_db)) -> User:
+def create_new_user(db: Session,userCreate: user_schemas.UserCreate) -> User:
     
     # Call the CRUD function to create a new user
-    user = crud_create_new_user(userCreate, db)
+    user = crud_create_new_user(db, userCreate)
     return user

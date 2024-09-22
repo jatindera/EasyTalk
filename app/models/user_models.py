@@ -1,16 +1,22 @@
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 from app.db.database import Base
-from datetime import datetime, timezone
+from datetime import datetime
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = 'users'
+    
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False)
+    first_name = Column(String(100))
+    last_name = Column(String(100))
+    provider_name = Column(String(50))
+    provider_id = Column(String(255))
+    role = Column(String(50))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
-    user_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    email = Column(String(255), unique=True, index=True, nullable=False)
-    first_name = Column(String(100), nullable=True)
-    last_name = Column(String(100), nullable=True)
-    provider_name = Column(String(50), nullable=True)
-    provider_id = Column(String(255), nullable=True)
-    role = Column(String(50), nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    # Define the relationship to ChatSession
+    chat_sessions = relationship("ChatSession", back_populates="user")  # This should match the ChatSession model's relationship
+    # Define the relationship to ChatHistory
+    chat_history = relationship("ChatHistory", back_populates="user")

@@ -1,40 +1,63 @@
-// components/ChatSection.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FaPlus, FaPaperPlane } from 'react-icons/fa';
 import { AuthContext } from '../../services/auth/authContext';
 import styles from './Chat.module.css';
-import { sendMessage } from '../../services/chat/chatService';
+import { sendMessage, fetchChatHistory } from '../../services/chat/clientChatService';
 
 const ChatSection = () => {
-  // Access the context for the access token
   const { accessToken } = useContext(AuthContext);
-
-  // Local state for the chat
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [chatSessionId, setChatSessionId] = useState(null); // Chat session ID state
+  const [showSidebar, setShowSidebar] = useState(true); 
 
-  // Function to handle sending messages
-  const handleSendMessage = () => {
-    if (input.trim() !== '' && accessToken) {
-      // Call the FastAPI endpoint to send a message
-      sendMessage(accessToken, input)
-        .then(data => {
-          console.log(data)
-          // Update the message state with the response from FastAPI
-          setMessages([...messages, { sender: 'user', text: input }, { sender: 'ai', text: data.data }]);
-          setInput('');
-        })
-        .catch(error => {
-          console.error('Error while calling FastAPI:', error);
-        });
-    }
-  };
+ // Fetch chat history on component load or when the session ID changes
+ useEffect(() => {
+  if (chatSessionId && accessToken) {
+    // Fetch previous chat history if a session ID is available
+    fetchChatHistory(accessToken, chatSessionId)
+      .then(history => {
+        setMessages(history); // Populate chat history
+      })
+      .catch(error => {
+        console.error('Error fetching chat history:', error);
+      });
+  }
+}, [chatSessionId, accessToken]);
 
-  // Function to handle new chat creation
+const handleSendMessage = () => {
+  if (input.trim() !== '' && accessToken) {
+    sendMessage(accessToken, input, chatSessionId)
+      .then(data => {
+        const { response, newChatSessionId } = data;
+
+        // If a new session ID is returned, update both local storage and state
+        if (newChatSessionId && newChatSessionId !== chatSessionId) {
+          setChatSessionId(newChatSessionId);
+          localStorage.setItem('chatSessionId', newChatSessionId); // Save new session ID in local storage
+        }
+
+        // Update the message state with the new message and response
+        setMessages(prevMessages => [
+          ...prevMessages,
+          { sender: 'user', text: input },    // User's message
+          { sender: 'ai', text: response }    // AI's response
+        ]);
+
+        setInput(''); // Clear the input field
+      })
+      .catch(error => {
+        console.error('Error while calling FastAPI:', error);
+      });
+  }
+};
+
   const handleNewChat = () => {
-    alert('New chat created!'); // Placeholder for functionality
-  };
+  // Reset the chat messages and chatSessionId for a new chat
+  setMessages([]); // Clear all previous messages
+  setChatSessionId(null); // Reset the chat session ID
+  setInput(''); // Clear the input field
+};
 
   return (
     <div className="d-flex flex-grow-1" style={{ overflow: 'hidden' }}>
@@ -50,9 +73,6 @@ const ChatSection = () => {
           <ul className="list-unstyled">
             <li className="mb-3 chat-label">Chat1</li>
             <li className="mb-3 chat-label">Chat2</li>
-            <li className="mb-3 chat-label">Chat3</li>
-            <li className="mb-3 chat-label">Chat4</li>
-            <li className="mb-3 chat-label">Chat5</li>
           </ul>
         </aside>
       )}

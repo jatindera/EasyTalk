@@ -5,27 +5,17 @@ from app.models.user_models import User
 from app.schemas.user_schemas import UserCreate
 
 def get_user_by_email(email: str, db: Session ):
-    """
-    Retrieve user details by email from the database.
-
-    Parameters:
-    db (Session): The database session.
-    email (str): The email of the user.
-
-    Returns:
-    User: The user object or None if not found.
-    """
     return db.query(User).filter(User.email == email).first()
 
-def create_new_user(userCreate: UserCreate, db: Session):
+def create_new_user(db: Session, user_create: UserCreate):
      # Add the new user to the database session
     db_user = User(
-        email=userCreate.email,
-        first_name=userCreate.first_name,
-        last_name=userCreate.last_name,
-        provider_name=userCreate.provide_name,
-        provider_id=userCreate.provider_id,
-        role=userCreate.role,
+        email=user_create.email,
+        first_name=user_create.first_name,
+        last_name=user_create.last_name,
+        provider_name=user_create.provider_name,
+        provider_id=user_create.provider_id,
+        role=user_create.role,
         )
     db.add(db_user)
     

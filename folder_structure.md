@@ -1,23 +1,18 @@
 - **/**
   - .env
   - .env.template
-  - **alembic/**
-    - README
-    - alembic.ini
-    - env.py
-    - script.py.mako
-    - **versions/**
-  - alembic.ini
+  - **.vscode/**
+    - settings.json
+  - Readme.md
   - **app/**
     - __init__.py
-    - **api/**
-      - __init__.py
-      - company_name_routes.py
     - **config/**
       - __init__.py
       - config.py
     - **crud/**
+      - chat_crud.py
       - company_name_crud.py
+      - user_crud.py
     - **db/**
       - __init__.py
       - database.py
@@ -25,22 +20,38 @@
     - **models/**
       - __init__.py
       - company_name_models.py
+      - user_models.py
     - **prompts/**
       - __init__.py
       - custom_prompts.py
+    - **routes/**
+      - __init__.py
+      - company_name_routes.py
+      - llm_chat_routes.py
+      - user_routes.py
     - **schemas/**
       - __init__.py
+      - chat_schemas.py
       - company_name_schemas.py
+      - user_schemas.py
     - **services/**
       - __init__.py
+      - auth_service.py
       - langchain_service.py
+      - session_service.py
+      - user_service.py
+    - test.html
     - **tests/**
       - __init__.py
       - test_main.py
+    - **utils/**
+      - __init__.py
+      - chat_utils.py
   - folder_structure.md
-  - folder_structure1.md
-  - **frontend/**
-    - test.html
-  - generate_structure.py
+  - folder_structure.py
   - memory.db
+  - **node_modules/**
+    - .package-lock.json
+  - package-lock.json
+  - package.json
   - requirements.txt

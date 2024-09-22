@@ -22,20 +22,23 @@ def upgrade():
     # Create the 'chat_sessions' table
     op.create_table(
         'chat_sessions',
-        sa.Column('session_id', sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column('session_id', sa.String(50), primary_key=True, autoincrement=True),
         sa.Column('user_id', sa.Integer, sa.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False),
         sa.Column('session_name', sa.String(255), nullable=True),  # Optional name for the session
         sa.Column('session_status', sa.String(50), default='active'),  # Active or completed
+        sa.Column('last_interaction_at', sa.DateTime),
         sa.Column('created_at', sa.DateTime, server_default=sa.func.now(), nullable=False)
     )
 
-    # Optionally, create an index on user_id for faster lookups by user
+    # Create an index on user_id, session_id for faster lookups by user
     op.create_index('idx_chat_sessions_user_id', 'chat_sessions', ['user_id'], unique=False)
+    op.create_index('idx_chat_sessions_session_id', 'chat_sessions', ['session_id'], unique=False)
 
 
 def downgrade():
     # Drop the index first
     op.drop_index('idx_chat_sessions_user_id', table_name='chat_sessions')
+    op.drop_index('idx_chat_sessions_session_id', table_name='chat_sessions')
 
     # Drop the 'chat_sessions' table
     op.drop_table('chat_sessions')

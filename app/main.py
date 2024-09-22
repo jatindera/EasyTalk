@@ -25,7 +25,7 @@ app.add_middleware(
 
 
 # Create the database tables (if not done in database.py)
-# create_tables() # using alembic to create tables
+create_tables()
 
 # Include the NameCrafter routes
 # app.include_router(company_name_routes.router)

@@ -25,7 +25,7 @@ def generate_structure(root_dir, markdown_file, ignore_list):
 # Specify the directory and output markdown file name
 root_directory = "./"  # Change to your project's root directory
 output_file = "folder_structure.md"
-ignore_list = [".venv", ".gitignore", "__pycache__", ".git", ".DS_Store", "pycache"]  # Add files and folders to ignore
+ignore_list = [".venv", ".gitignore", "__pycache__", ".git", ".DS_Store", "pycache", "frontend", "alembic"]  # Add files and folders to ignore
 
 # Create and write the structure to the markdown file
 with open(output_file, 'w') as md_file:

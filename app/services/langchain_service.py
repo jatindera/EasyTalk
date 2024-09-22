@@ -14,7 +14,7 @@ from langchain.memory.buffer import ConversationBufferMemory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from app.utils.chat_utils import generate_session_id ,truncate_history
+from app.utils.chat_utils import truncate_history
 
 
 
@@ -35,51 +35,57 @@ set_llm_cache(InMemoryCache())
 llm = ChatOpenAI(model="gpt-4o", max_tokens=200, temperature=0.7)
 
 
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    return_messages=True,
-)
-
-session_id = generate_session_id()
-
-def get_session_history(session_id):
-    sql_chat_message_history = SQLChatMessageHistory(session_id, "sqlite:///memory.db")
-    print("*" * 50)
-    print(session_id)
-    print(sql_chat_message_history)
-    print("*" * 50)
-    return sql_chat_message_history
+# memory = ConversationBufferMemory(
+#     memory_key="chat_history",
+#     return_messages=True,
+# )
 
 
-def generate_company_names(product_name: str, target_audience: str) -> str:
-    print(product_name, target_audience)
+# def get_session_history(session_id):
+#     sql_chat_message_history = SQLChatMessageHistory(session_id, "sqlite:///memory.db")
+#     print("*" * 50)
+#     print(session_id)
+#     print(sql_chat_message_history)
+#     print("*" * 50)
+#     return sql_chat_message_history
+
+
+# def generate_company_names(product_name: str, target_audience: str) -> str:
+#     print(product_name, target_audience)
     
-    prompt_template = PromptTemplate(template=company_name_crafter_template)
+#     prompt_template = PromptTemplate(template=company_name_crafter_template)
 
-    # Create the LLM chain
-    llm_chain = prompt_template | llm
+#     # Create the LLM chain
+#     llm_chain = prompt_template | llm
 
-    # Invoke the chain with the given topic
-    suggestion = llm_chain.invoke(
-        {"product_name": product_name, "target_audience": target_audience}
-    )
-    return suggestion.content
+#     # Invoke the chain with the given topic
+#     suggestion = llm_chain.invoke(
+#         {"product_name": product_name, "target_audience": target_audience}
+#     )
+#     return suggestion.content
 
 
 def general_chat(query: str, session_id: str):
     # Get session history
-    sql_chat_message_history = get_session_history(session_id)
+    # sql_chat_message_history = get_session_history(session_id)
 
     # Truncate history if it exceeds the window limit
     # truncated_history = truncate_history(sql_chat_message_history.load())
-    truncated_history = sql_chat_message_history # write this logic later.
+    # truncated_history = sql_chat_message_history # write this logic later.
 
     # print(f"Truncated History is: {truncate_history}")
+
+    # prompt = ChatPromptTemplate(
+    #     [
+    #         ("system", "You are a chatbot having a conversation with a human"),
+    #         MessagesPlaceholder(variable_name="history"),
+    #         ("human", "{query}"),
+    #     ]
+    # )
 
     prompt = ChatPromptTemplate(
         [
             ("system", "You are a chatbot having a conversation with a human"),
-            MessagesPlaceholder(variable_name="history"),
             ("human", "{query}"),
         ]
     )
@@ -87,17 +93,19 @@ def general_chat(query: str, session_id: str):
     stroutput = StrOutputParser()
     chain = prompt | llm | stroutput
     
-    chain_with_history = RunnableWithMessageHistory(
-        chain,
-        get_session_history,
-        input_messages_key="query",
-        history_messages_key="history"
-    )
+    # chain_with_history = RunnableWithMessageHistory(
+    #     chain,
+    #     get_session_history,
+    #     input_messages_key="query",
+    #     history_messages_key="history"
+    # )
     
-    output = chain_with_history.invoke(
-        {"query": query, "history": truncated_history},
-        config={"configurable": {"session_id": session_id}},
-    )
+    # output = chain_with_history.invoke(
+    #     {"query": query, "history": truncated_history},
+    #     config={"configurable": {"session_id": session_id}},
+    # )
+    messages = prompt.format_messages(query=query)
+    output = chain.invoke(messages)
     return output
 
 
