@@ -18,6 +18,12 @@ def get_chat_history_titles(db: Session,user_id: str):
     chat_history_titles = chat_crud.get_chat_history_titles(db,user_id)
     return chat_history_titles
 
+def get_chat_history_for_session(db: Session, session_id: str, user_id: str):
+    chat_history = chat_crud.get_chat_history_for_session(db,session_id, user_id)
+    return chat_history
+
+
+
 def fetch_chat_history_for_session(db: Session, chat_session_id: int, user_id: int) -> List[ChatHistory]:
     # Fetch chat history for the given chat session ID and user ID
     chat_history = chat_crud.fetch_chat_history_for_session(db, chat_session_id, user_id)

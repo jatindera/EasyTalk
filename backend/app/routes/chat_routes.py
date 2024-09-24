@@ -64,7 +64,6 @@ def get_chat_history_titles(user: dict = Depends(get_current_user), db: Session 
     user_id = user["user_id"]
     # Fetch chat history for the current user
     chat_history_titles = chat_service.get_chat_history_titles(db, user_id)
-    print(chat_history_titles)
     if not chat_history_titles:
         return {"chat_history_titles": ""}
     return {"chat_history_titles": chat_history_titles}
@@ -72,20 +71,12 @@ def get_chat_history_titles(user: dict = Depends(get_current_user), db: Session 
 
 
 @router.get("/chat-history/{session_id}")
-def fetch_chat_history_for_session(session_id: str, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    print("*"*100)
-    print("Inside fetch_chat_history_for_session")
-    print(session_id)
-    print(user)
-    print("*"*100)
+def get_chat_history_for_session(session_id: str, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = user["user_id"]
+    # Fetch chat history for the current user and the given session id
+    chat_history = chat_service.get_chat_history_for_session(db, session_id, user_id)
+    if not chat_history:
+        return {"chat_history": ""}
+    return {"chat_history": chat_history}
 
-    # Fetch all the messages corresponding to the session ID from the database
-    # messages = chat_service.fetch_chat_history_for_session(db, session_id, user.user_id)
 
-    #  # Transform the query result into a list of dictionaries with query, answer, and timestamp
-    # chat_history = [
-    #     {"query": msg.query, "answer": msg.answer, "timestamp": msg.timestamp}
-    #     for msg in messages
-    # ]
-
-    # return {"session_id": session_id, "messages": chat_history}

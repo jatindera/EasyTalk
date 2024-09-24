@@ -12,10 +12,16 @@ def create_new_chat_session(db: Session, user_id: str, session_name: str = None 
     return chat_session
 
 def get_chat_history_titles(db: Session, user_id: str):
-    # Wrinting query because mappings, which returns dictionary, is not supported by ORM
+    # Writing query because mappings, which returns dictionary, is not supported by ORM
     query = text("SELECT session_id, session_name FROM chat_sessions WHERE user_id = :user_id")
     chat_history_titles = db.execute(query,{"user_id": user_id}).mappings().all()
     return chat_history_titles
+
+def get_chat_history_for_session(db: Session, session_id, user_id: str):
+    # Writing query because mappings, which returns dictionary, is not supported by ORM
+    query = text("SELECT query, answer FROM chat_history WHERE session_id = :session_id and user_id = :user_id")
+    chat_history = db.execute(query,{"session_id" : session_id ,"user_id": user_id}).mappings().all()
+    return chat_history
 
 
 # Store a new message in the chat history
