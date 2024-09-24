@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from app.services.auth_service import  validate_jwt, httpBearer
 from fastapi.security import HTTPBasicCredentials
 from sqlalchemy.orm import Session
-from app.crud.user_crud import get_user_by_email as crud_get_user_by_email
+from app.crud.user_crud import get_user_by_oid as crud_get_user_by_oid
 from app.crud.user_crud import create_new_user as crud_create_new_user
 from app.models.user_models import User
 from app.db.database import get_db
@@ -19,13 +19,14 @@ def get_current_user(httpCredentails:HTTPBasicCredentials = Depends(httpBearer))
         # Extract user information from claims (e.g., email, username)
         # Adjust based on your token's claims structure
         user = {
+            'user_id': claims.get('oid'),
             'email': claims.get('email'),
             'first_name': claims.get('given_name'),
             'last_name': claims.get('family_name'),
-            'provider_name': "azure_ad",
-            'provider_id': claims.get('oid'),
+            'ip_address': claims.get('ipaddr'),
+            'provider_name': claims.get('idp'),
             'role': 'user',
-            'ip_address': claims.get('ipaddr')
+           
         }          
         # Return the claims or user info
         return user
@@ -35,19 +36,10 @@ def get_current_user(httpCredentails:HTTPBasicCredentials = Depends(httpBearer))
         raise HTTPException(status_code=401, detail=f"Token validation error: {str(e)}")
 
 
-def get_user_by_email(email: str,db: Session = Depends(get_db)) -> User:
-    """
-    Service to get a user by email from the database.
-
-    Parameters:
-    db (Session): The database session.
-    email (str): The email of the user to retrieve.
-
-    Returns:
-    User: The user object if found, otherwise None.
-    """
+def get_user_by_oid(oid: str,db: Session = Depends(get_db)) -> User:
+    
     # Call the CRUD function to get the user by email
-    user = crud_get_user_by_email(email, db)
+    user = crud_get_user_by_oid(oid, db)
     
     return user
 

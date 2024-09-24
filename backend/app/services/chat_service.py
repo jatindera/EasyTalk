@@ -10,9 +10,13 @@ def create_new_chat_session(db: Session, user_id: int, session_name:str) -> Chat
     chat_session_row = chat_crud.create_new_chat_session(db, user_id, session_name)
     return chat_session_row
 
-def create_chat_history(db: Session, session_id: int, user_id: int, query: str, answer: str):
+def create_chat_history(db: Session, session_id: int, user_id: str, query: str, answer: str):
     history_row = chat_crud.create_chat_history(db, session_id, user_id, query, answer)
     return history_row
+
+def get_chat_history_titles(db: Session,user_id: str):
+    chat_history_titles = chat_crud.get_chat_history_titles(db,user_id)
+    return chat_history_titles
 
 def fetch_chat_history_for_session(db: Session, chat_session_id: int, user_id: int) -> List[ChatHistory]:
     # Fetch chat history for the given chat session ID and user ID

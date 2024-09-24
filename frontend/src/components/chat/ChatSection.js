@@ -1,63 +1,66 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FaPlus, FaPaperPlane } from 'react-icons/fa';
-import { AuthContext } from '../../services/auth/authContext';
+import { AppContext } from '../../services/context/appContext';
 import styles from './Chat.module.css';
-import { sendMessage, fetchChatHistory } from '../../services/chat/clientChatService';
+import { sendMessage , fetchChatHistory} from '../../services/chat/clientChatService'; // Removed fetchChatHistory as we'll define it here
 
 const ChatSection = () => {
-  const { accessToken } = useContext(AuthContext);
+  const { accessToken } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [chatSessionId, setChatSessionId] = useState(null); // Chat session ID state
-  const [showSidebar, setShowSidebar] = useState(true); 
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [chatList, setChatList] = useState([]); // For sidebar chat list
 
- // Fetch chat history on component load or when the session ID changes
- useEffect(() => {
-  if (chatSessionId && accessToken) {
-    // Fetch previous chat history if a session ID is available
-    fetchChatHistory(accessToken, chatSessionId)
-      .then(history => {
-        setMessages(history); // Populate chat history
-      })
-      .catch(error => {
-        console.error('Error fetching chat history:', error);
-      });
-  }
-}, [chatSessionId, accessToken]);
+  
+  // Fetch chat history on component load or when the session ID changes
+  useEffect(() => {
+    if (chatSessionId && accessToken) {
+      // Fetch previous chat history if a session ID is available
+      fetchChatHistory(accessToken, chatSessionId)
+        .then(history => {
+          setMessages(history.messages || []); // Populate chat history, assuming response contains a `messages` array
+          setChatList(history.chatSessions || []); // Assuming response contains a `chatSessions` list for sidebar
+        })
+        .catch(error => {
+          console.error('Error fetching chat history:', error);
+        });
+    }
+  }, [chatSessionId, accessToken]);
 
-const handleSendMessage = () => {
-  if (input.trim() !== '' && accessToken) {
-    sendMessage(accessToken, input, chatSessionId)
-      .then(data => {
-        const { response, newChatSessionId } = data;
+  const handleSendMessage = () => {
+    if (input.trim() !== '' && accessToken) {
+      sendMessage(accessToken, input, chatSessionId)
+        .then(data => {
+          const { response, newChatSessionId } = data;
 
-        // If a new session ID is returned, update both local storage and state
-        if (newChatSessionId && newChatSessionId !== chatSessionId) {
-          setChatSessionId(newChatSessionId);
-          localStorage.setItem('chatSessionId', newChatSessionId); // Save new session ID in local storage
-        }
+          // If a new session ID is returned, update both local storage and state
+          if (newChatSessionId && newChatSessionId !== chatSessionId) {
+            setChatSessionId(newChatSessionId);
+            localStorage.setItem('chatSessionId', newChatSessionId); // Save new session ID in local storage
+          }
 
-        // Update the message state with the new message and response
-        setMessages(prevMessages => [
-          ...prevMessages,
-          { sender: 'user', text: input },    // User's message
-          { sender: 'ai', text: response }    // AI's response
-        ]);
+          // Update the message state with the new message and response
+          setMessages(prevMessages => [
+            ...prevMessages,
+            { sender: 'user', text: input },    // User's message
+            { sender: 'ai', text: response }    // AI's response
+          ]);
 
-        setInput(''); // Clear the input field
-      })
-      .catch(error => {
-        console.error('Error while calling FastAPI:', error);
-      });
-  }
-};
+          setInput(''); // Clear the input field
+        })
+        .catch(error => {
+          console.error('Error while calling FastAPI:', error);
+        });
+    }
+  };
 
   const handleNewChat = () => {
-  // Reset the chat messages and chatSessionId for a new chat
-  setMessages([]); // Clear all previous messages
-  setChatSessionId(null); // Reset the chat session ID
-  setInput(''); // Clear the input field
-};
+    // Reset the chat messages and chatSessionId for a new chat
+    setMessages([]); // Clear all previous messages
+    setChatSessionId(null); // Reset the chat session ID
+    setInput(''); // Clear the input field
+  };
 
   return (
     <div className="d-flex flex-grow-1" style={{ overflow: 'hidden' }}>
@@ -71,8 +74,11 @@ const handleSendMessage = () => {
             </button>
           </div>
           <ul className="list-unstyled">
-            <li className="mb-3 chat-label">Chat1</li>
-            <li className="mb-3 chat-label">Chat2</li>
+            {chatList.map((chat, index) => (
+              <li key={index} className="mb-3 chat-label">
+                {chat.name || `Chat ${index + 1}`}  {/* Assuming each chat session has a 'name' */}
+              </li>
+            ))}
           </ul>
         </aside>
       )}

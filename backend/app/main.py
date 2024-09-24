@@ -1,17 +1,17 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
+import os
 
 from app.db.database import create_tables
-from app.routes import llm_chat_routes, user_routes
-from app.services.user_service import get_current_user
+from app.routes import user_routes, chat_routes
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
 # Define the list of allowed origins (you can limit this to specific origins)
 origins = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "https://login.microsoftonline.com/",
+    os.environ["FRONTEND_URL"],
+    os.environ["BACKEND_URL"],
+    os.environ["MICOROSOFT_LOGIN_URL"],
 ]
 
 # Add CORS middleware to the app
@@ -30,7 +30,10 @@ create_tables()
 # Include the NameCrafter routes
 # app.include_router(company_name_routes.router)
 app.include_router(user_routes.router)
-app.include_router(llm_chat_routes.router)
+app.include_router(chat_routes.router)
+
+
+
 
 
 

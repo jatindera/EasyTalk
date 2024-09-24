@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.utils.chat_utils import getSessionName
-from app.services.user_service import get_current_user, get_user_by_email, create_new_user
+from app.services.user_service import get_current_user, get_user_by_oid, create_new_user
 from app.db.database import get_db
 from app.schemas.chat_schemas import ChatRequest
 from app.schemas.user_schemas import UserCreate
@@ -14,25 +14,24 @@ router = APIRouter(
     tags=["Chat API"],
 )
 
-@router.post("/llm-chat")
+@router.post("/chat")
 def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     query = request.query
     chat_session_id = request.chatSessionId
-    email = user["email"]
+    user_id = user["user_id"]
     # Retrieve or create the user in the database
-    user_record = get_user_by_email(email, db)
+    user_record = get_user_by_oid(user_id, db)
     if not user_record:
         userCreateObj = UserCreate(
-            email=email,
+            user_id=user_id,
+            email=user["email"],
             first_name=user["first_name"],
             last_name=user["last_name"],
+            ip_address=user["ip_address"],
             provider_name=user["provider_name"],
-            provider_id=user["provider_id"],
             role=user["role"]
         )
         user_record = create_new_user(db, userCreateObj)
-        print(user_record.user_id)
-        print("*************")
         
     session_name = getSessionName(query)
     # Check or create the chat session ID
@@ -57,7 +56,20 @@ def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: S
     db.add(new_chat_history)
     db.commit()
 
-    return {"response": ai_response, "newChatSessionId": chat_session_id}
+    return {"response": ai_response, "chatSessionId": chat_session_id}
+    
+
+@router.post("/chat-history")
+def get_chat_history_titles(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = user["user_id"]
+    # Fetch chat history for the current user
+    chat_history_titles = chat_service.get_chat_history_titles(db, user_id)
+    print(chat_history_titles)
+    if not chat_history_titles:
+        return {"chat_history_titles": ""}
+    return {"chat_history_titles": chat_history_titles}
+
+
 
 @router.get("/chat-history/{session_id}")
 def fetch_chat_history_for_session(session_id: str, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):

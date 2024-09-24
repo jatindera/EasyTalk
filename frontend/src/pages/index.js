@@ -1,17 +1,17 @@
-// pages/index.js
-import React, { useContext } from 'react';
 import Head from 'next/head';
+import { useContext, useEffect } from 'react';
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
+import { loginRequest } from '../services/auth/authConfig';
+import { AppContext } from '../services/context/appContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaUser, FaInstagram, FaFacebook } from 'react-icons/fa';
 import ChatSection from '../components/chat/ChatSection';
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
-import { loginRequest } from '../services/auth/authConfig';
-import { AuthContext } from '../services/auth/authContext'; // Import AuthContext
+import Link from 'next/link'; // Import Next.js Link component
 
 const Home = () => {
   const { instance } = useMsal();
-  const { setAccessToken } = useContext(AuthContext); // Use the context
-  
+  const { setAccessToken } = useContext(AppContext);
+
   const handleLogin = () => {
     instance.loginPopup(loginRequest)
       .then(response => {
@@ -22,26 +22,26 @@ const Home = () => {
           ...loginRequest,
           account: account
         })
-        .then(response => {
-          console.log("Access Token:", response.accessToken);
-          // Store the access token using context
-          setAccessToken(response.accessToken);
-        })
-        .catch(error => {
-          console.error("Failed to acquire access token silently:", error);
-          instance.acquireTokenPopup({
-            ...loginRequest,
-            account: account
-          })
           .then(response => {
-            console.log("Access Token:", response.accessToken);
+            // console.log("Access Token:", response.accessToken);
             // Store the access token using context
             setAccessToken(response.accessToken);
           })
           .catch(error => {
-            console.error("Failed to acquire access token:", error);
+            console.error("Failed to acquire access token silently:", error);
+            instance.acquireTokenPopup({
+              ...loginRequest,
+              account: account
+            })
+              .then(response => {
+                // console.log("Access Token:", response.accessToken);
+                // Store the access token using context
+                setAccessToken(response.accessToken);
+              })
+              .catch(error => {
+                console.error("Failed to acquire access token:", error);
+              });
           });
-        });
       })
       .catch(e => {
         console.error("Login failed:", e);
@@ -76,7 +76,7 @@ const Home = () => {
             </UnauthenticatedTemplate>
             <AuthenticatedTemplate>
               <li className="nav-item">
-                <a className="nav-link text-white" href="#">
+                <a className="nav-link text-white" href="#" aria-label="User">
                   <FaUser size={20} className="ms-2" />
                 </a>
               </li>
@@ -93,24 +93,25 @@ const Home = () => {
         <div className="container">
           <div className="d-flex justify-content-between">
             <div>
-              <a href="#" className="text-white">Privacy Policy</a> | <a href="#" className="text-white">Terms of Service</a>
+              <Link href="/privacy-policy" className="text-white">Privacy Policy</Link> |
+              <Link href="/terms-of-service" className="text-white">Terms of Service</Link>
             </div>
             <div>
-              <a href="#" className="text-white">Contact</a> | 
-              <a href="#" className="text-white">Feedback</a> |
+              <Link href="/contact" className="text-white">Contact</Link> |
+              <Link href="/feedback" className="text-white">Feedback</Link> |
               <a href="#" className="text-white">Follow Us</a> |
-              <a href="#" className="text-white">Subscribe</a> |
+              <a href="#" className="text-white">Subscribe</a>
             </div>
             <div>
               <span className="text-white">Follow us:</span>
-              <a href="#" className="ms-2 text-white"><FaInstagram /></a>
-              <a href="#" className="ms-2 text-white"><FaFacebook /></a>
+              <a href="#" className="ms-2 text-white" aria-label="Instagram"><FaInstagram /></a>
+              <a href="#" className="ms-2 text-white" aria-label="Facebook"><FaFacebook /></a>
             </div>
           </div>
         </div>
       </footer>
     </div>
   );
-}
+};
 
 export default Home;

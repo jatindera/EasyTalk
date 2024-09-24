@@ -1,14 +1,21 @@
 from sqlalchemy.orm import Session
 from app.models.chat_models import ChatSession, ChatHistory
 from datetime import datetime
+from sqlalchemy import text
 
 # Create a new chat session
-def create_new_chat_session(db: Session, user_id: int, session_name: str = None ):
+def create_new_chat_session(db: Session, user_id: str, session_name: str = None ):
     chat_session = ChatSession(user_id=user_id, session_name=session_name)
     db.add(chat_session)
     db.commit()
     db.refresh(chat_session)
     return chat_session
+
+def get_chat_history_titles(db: Session, user_id: str):
+    # Wrinting query because mappings, which returns dictionary, is not supported by ORM
+    query = text("SELECT session_id, session_name FROM chat_sessions WHERE user_id = :user_id")
+    chat_history_titles = db.execute(query,{"user_id": user_id}).mappings().all()
+    return chat_history_titles
 
 
 # Store a new message in the chat history

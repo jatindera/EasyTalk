@@ -1,4 +1,6 @@
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+import google.generativeai as genai
 from langchain_core.globals import set_llm_cache
 from langchain_core.caches import InMemoryCache  # allows caching the results
 from app.prompts.custom_prompts import company_name_crafter_template
@@ -15,6 +17,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from app.utils.chat_utils import truncate_history
+import os
 
 
 
@@ -32,7 +35,12 @@ from app.utils.chat_utils import truncate_history
 
 # Set up caching
 set_llm_cache(InMemoryCache())
-llm = ChatOpenAI(model="gpt-4o", max_tokens=200, temperature=0.7)
+###################CHATOPENAI###################
+# llm = ChatOpenAI(model="gpt-4o", max_tokens=200, temperature=0.7)
+
+###################GOOGLE###################
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", temperature=0.7)
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 
 # memory = ConversationBufferMemory(
