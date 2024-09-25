@@ -7,7 +7,7 @@ export const sendMessage = async (accessToken, message, chatSessionId = null) =>
   };
 
   try {
-    const response = await axios.post('/api/serverChatService', requestBody, {
+    const response = await axios.post('/api/chatService', requestBody, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -21,11 +21,12 @@ export const sendMessage = async (accessToken, message, chatSessionId = null) =>
   }
 };
 
-export const fetchChatHistory = async (accessToken, sessionId) => {
+export const fetchChatHistoryTitles = async (accessToken) => {
+  const requestBody = {
+  };
   try {
     // Make a request to the Next.js API route to fetch chat history
-    const response = await axios.get(`/api/serverChatHistoryService`, {
-      params: { sessionId }, // Pass the sessionId as a query param
+    const response = await axios.post('/api/chatHistoryTitles', requestBody, {
       headers: {
         'Authorization': `Bearer ${accessToken}`, // Pass the access token
         'Content-Type': 'application/json',
@@ -33,7 +34,7 @@ export const fetchChatHistory = async (accessToken, sessionId) => {
     });
 
     // Return the chat history data
-    return response.data.messages;
+    return response;
   } catch (error) {
     console.error('Error fetching chat history:', error);
     throw error;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FaPlus, FaPaperPlane } from 'react-icons/fa';
 import { AppContext } from '../../services/context/appContext';
 import styles from './Chat.module.css';
-import { sendMessage , fetchChatHistory} from '../../services/chat/clientChatService'; // Removed fetchChatHistory as we'll define it here
+import { sendMessage, fetchChatHistoryTitles } from '../../services/chat/clientChatService'; // Removed fetchChatHistory as we'll define it here
 
 const ChatSection = () => {
   const { accessToken } = useContext(AppContext);
@@ -11,22 +11,31 @@ const ChatSection = () => {
   const [chatSessionId, setChatSessionId] = useState(null); // Chat session ID state
   const [showSidebar, setShowSidebar] = useState(true);
   const [chatList, setChatList] = useState([]); // For sidebar chat list
+  const [isTokenReady, setIsTokenReady] = useState(false); // To control when the token is ready
 
-  
-  // Fetch chat history on component load or when the session ID changes
+  // Watch the accessToken and set the isTokenReady flag when it's available
   useEffect(() => {
-    if (chatSessionId && accessToken) {
-      // Fetch previous chat history if a session ID is available
-      fetchChatHistory(accessToken, chatSessionId)
+    if (accessToken) {
+      setIsTokenReady(true);
+    }
+  }, [accessToken]);
+
+  // Fetch chat history when accessToken is ready
+  useEffect(() => {
+    if (isTokenReady) {
+      // Fetch previous chat history
+      fetchChatHistoryTitles(accessToken)
         .then(history => {
-          setMessages(history.messages || []); // Populate chat history, assuming response contains a `messages` array
-          setChatList(history.chatSessions || []); // Assuming response contains a `chatSessions` list for sidebar
+          console.log("*****************")
+          console.log(history.data.chat_history_titles)
+          console.log("*****************")
+          setChatList(history.data.chat_history_titles || []); // Assuming response contains a `chatSessions` list for sidebar
         })
         .catch(error => {
           console.error('Error fetching chat history:', error);
         });
     }
-  }, [chatSessionId, accessToken]);
+  }, [isTokenReady, accessToken]); // Run this effect only when the token is ready
 
   const handleSendMessage = () => {
     if (input.trim() !== '' && accessToken) {
@@ -37,7 +46,6 @@ const ChatSection = () => {
           // If a new session ID is returned, update both local storage and state
           if (newChatSessionId && newChatSessionId !== chatSessionId) {
             setChatSessionId(newChatSessionId);
-            localStorage.setItem('chatSessionId', newChatSessionId); // Save new session ID in local storage
           }
 
           // Update the message state with the new message and response
@@ -76,7 +84,7 @@ const ChatSection = () => {
           <ul className="list-unstyled">
             {chatList.map((chat, index) => (
               <li key={index} className="mb-3 chat-label">
-                {chat.name || `Chat ${index + 1}`}  {/* Assuming each chat session has a 'name' */}
+                {chat.session_name || `Chat ${index + 1}`}  {/* Assuming each chat session has a 'name' */}
               </li>
             ))}
           </ul>

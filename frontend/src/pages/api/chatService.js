@@ -3,6 +3,7 @@ import axios from 'axios';
 
 export default async function handler(req, res) {
   const { query, chatSessionId } = req.body; // Extract data from the client request
+  console.log(query, chatSessionId)
   const accessToken = req.headers.authorization?.split(' ')[1]; // Get the access token from the Authorization header
 
   if (!query || !accessToken) {
@@ -11,7 +12,7 @@ export default async function handler(req, res) {
 
   try {
     // Make a request to the FastAPI server
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/llm-chat`, { 
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, { 
       query,
       chatSessionId,
     }, {

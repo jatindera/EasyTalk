@@ -56,7 +56,7 @@ def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: S
     db.add(new_chat_history)
     db.commit()
 
-    return {"response": ai_response, "chatSessionId": chat_session_id}
+    return {"response": ai_response, "newChatSessionId": chat_session_id}
     
 
 @router.post("/chat-history")
