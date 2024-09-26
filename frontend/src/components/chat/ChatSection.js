@@ -26,16 +26,16 @@ const ChatSection = () => {
       // Fetch previous chat history
       fetchChatHistoryTitles(accessToken)
         .then(history => {
-          console.log("*****************")
-          console.log(history.data.chat_history_titles)
-          console.log("*****************")
+          // console.log("*****************")
+          // console.log(history.data.chat_history_titles)
+          // console.log("*****************")
           setChatList(history.data.chat_history_titles || []); // Assuming response contains a `chatSessions` list for sidebar
         })
         .catch(error => {
           console.error('Error fetching chat history:', error);
         });
     }
-  }, [isTokenReady, accessToken]); // Run this effect only when the token is ready
+  }, [isTokenReady, accessToken, chatSessionId]); // Run this effect only when the token is ready
 
   const handleSendMessage = () => {
     if (input.trim() !== '' && accessToken) {

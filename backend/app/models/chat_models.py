@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
 import uuid
+from sqlalchemy.sql import func
 
 
 # Chat Session model
@@ -13,7 +14,7 @@ class ChatSession(Base):
     user_id = Column(String(255), ForeignKey('users.user_id'))
     session_name = Column(String(255), nullable=True)
     session_status = Column(String(50), default="active")
-    created_at = Column(DateTime, default=datetime.now())
+    created_at = Column(DateTime, default=datetime.now)
     
     # Relationship to link with user and chat history
     user = relationship("User", back_populates="chat_sessions")
@@ -28,7 +29,7 @@ class ChatHistory(Base):
     user_id = Column(String(255), ForeignKey('users.user_id'), nullable=True)  # User who initiated the query
     query = Column(Text, nullable=False)  # The query from the user
     answer = Column(Text(collation='utf8mb4_general_ci'), nullable=False)  # The AI-generated response. Allow to store special characters like emojis
-    timestamp = Column(DateTime, default=datetime.now)  # Timestamp when the interaction occurred
+    created_at = Column(DateTime, default=datetime.now)  # Timestamp when the interaction occurred
 
     # Relationships
     chat_session = relationship("ChatSession", back_populates="chat_history")

@@ -13,7 +13,7 @@ def create_new_chat_session(db: Session, user_id: str, session_name: str = None 
 
 def get_chat_history_titles(db: Session, user_id: str):
     # Writing query because mappings, which returns dictionary, is not supported by ORM
-    query = text("SELECT session_id, session_name FROM chat_sessions WHERE user_id = :user_id")
+    query = text("SELECT session_id, session_name FROM chat_sessions WHERE user_id = :user_id order by created_at desc")
     chat_history_titles = db.execute(query,{"user_id": user_id}).mappings().all()
     return chat_history_titles
 
@@ -31,7 +31,7 @@ def create_chat_history(db: Session, session_id: int, user_id: int, query: str, 
         user_id=user_id,
         query=query,
         answer=answer,
-        timestamp=datetime.now()
+        created_at=datetime.now()
     )
     db.add(history_row)
     db.commit()
