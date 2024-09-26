@@ -54,7 +54,7 @@ marshmallow==3.22.0
 mdurl==0.1.2
 multidict==6.1.0
 mypy-extensions==1.0.0
-mysql-connector==2.2.9
+mysql-connector-python==9.0.0
 numpy==1.26.4
 ollama==0.3.3
 openai==1.47.0
@@ -97,7 +97,7 @@ typing_extensions==4.12.2
 uritemplate==4.1.1
 urllib3==2.2.3
 uvicorn==0.30.6
-uvloop==0.20.0
+# uvloop==0.20.0
 watchfiles==0.24.0
 websockets==13.1
 wikipedia==1.4.0

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.utils.chat_utils import getSessionName
-from app.services.user_service import get_current_user, get_user_by_oid, create_new_user
+from app.services.user_service import get_current_user, get_user_by_userid, create_new_user
 from app.db.database import get_db
 from app.schemas.chat_schemas import ChatRequest
 from app.schemas.user_schemas import UserCreate
@@ -20,7 +20,7 @@ def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: S
     chat_session_id = request.chatSessionId
     user_id = user["user_id"]
     # Retrieve or create the user in the database
-    user_record = get_user_by_oid(user_id, db)
+    user_record = get_user_by_userid(db, user_id)
     if not user_record:
         userCreateObj = UserCreate(
             user_id=user_id,
@@ -38,25 +38,20 @@ def llm_chat(request: ChatRequest, user: dict = Depends(get_current_user), db: S
     if not chat_session_id:
         new_chat_session = chat_service.create_new_chat_session(db, user_record.user_id,session_name)
         chat_session_id = new_chat_session.session_id
-        db.add(new_chat_session)
-        db.commit()
      
     # Call the AI model to get the response
-    ai_response = general_chat(query, chat_session_id)
-    answer = ai_response
+    answer = general_chat(query, chat_session_id)
 
     # Store the user's query and AI's answer in the chat history
-    new_chat_history = chat_service.create_chat_history(
+    chat_service.create_chat_history(
         db,
         chat_session_id,
         user_record.user_id,
         query,
         answer
     )
-    db.add(new_chat_history)
-    db.commit()
-
-    return {"response": ai_response, "newChatSessionId": chat_session_id}
+   
+    return {"response": answer, "newChatSessionId": chat_session_id}
     
 
 @router.post("/chat-history")

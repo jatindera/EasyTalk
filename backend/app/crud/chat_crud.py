@@ -36,7 +36,6 @@ def create_chat_history(db: Session, session_id: int, user_id: int, query: str, 
     db.add(history_row)
     db.commit()
     db.refresh(history_row)
-    return history_row
 
 
 # Fetch all chat history by session ID

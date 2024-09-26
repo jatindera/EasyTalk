@@ -12,7 +12,6 @@ def create_new_chat_session(db: Session, user_id: int, session_name:str) -> Chat
 
 def create_chat_history(db: Session, session_id: int, user_id: str, query: str, answer: str):
     history_row = chat_crud.create_chat_history(db, session_id, user_id, query, answer)
-    return history_row
 
 def get_chat_history_titles(db: Session,user_id: str):
     chat_history_titles = chat_crud.get_chat_history_titles(db,user_id)

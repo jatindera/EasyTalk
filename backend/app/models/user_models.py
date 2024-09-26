@@ -8,11 +8,11 @@ class User(Base):
     
     user_id = Column(String(255), primary_key=True, index=True, unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
-    first_name = Column(String(100))
+    first_name = Column(String(100), nullable=False)
     last_name = Column(String(100))
-    ip_address = Column(String(255))
-    provider_name = Column(String(50))
-    role = Column(String(50))
+    ip_address = Column(String(255), nullable=False)
+    provider_name = Column(String(50), nullable=False)
+    role = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
 

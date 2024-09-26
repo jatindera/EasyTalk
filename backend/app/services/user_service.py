@@ -3,8 +3,7 @@ from fastapi import HTTPException, Depends
 from app.services.auth_service import  validate_jwt, httpBearer
 from fastapi.security import HTTPBasicCredentials
 from sqlalchemy.orm import Session
-from app.crud.user_crud import get_user_by_oid as crud_get_user_by_oid
-from app.crud.user_crud import create_new_user as crud_create_new_user
+from app.crud import user_crud
 from app.models.user_models import User
 from app.db.database import get_db
 from app.schemas import user_schemas
@@ -36,15 +35,15 @@ def get_current_user(httpCredentails:HTTPBasicCredentials = Depends(httpBearer))
         raise HTTPException(status_code=401, detail=f"Token validation error: {str(e)}")
 
 
-def get_user_by_oid(oid: str,db: Session = Depends(get_db)) -> User:
+def get_user_by_userid(db: Session, user_id: str) -> User:
     
     # Call the CRUD function to get the user by email
-    user = crud_get_user_by_oid(oid, db)
+    user = user_crud.get_user_by_userid(db, user_id)
     
     return user
 
 def create_new_user(db: Session,userCreate: user_schemas.UserCreate) -> User:
     
     # Call the CRUD function to create a new user
-    user = crud_create_new_user(db, userCreate)
+    user = user_crud.create_new_user(db, userCreate)
     return user
