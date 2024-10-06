@@ -10,10 +10,12 @@ router = APIRouter(
     tags=["Users API"],
 )
 
+
 @router.get("/users")
 def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return users
+
 
 # @router.post("/first-visit")
 # async def handle_first_visit(email: str, db: Session = Depends(get_db)):
@@ -27,7 +29,7 @@ def get_users(db: Session = Depends(get_db)):
 #     Returns:
 #     dict: A dictionary containing the user's session information.
 #     """
-    
+
 #     # Retrieve user details from the database
 #     user = get_user_by_email(db, email)
 #     if user is None:
@@ -40,6 +42,6 @@ def get_users(db: Session = Depends(get_db)):
 #         'session_history': [],
 #         'current_session_id': None  # No active session initially
 #     }
-    
+
 #     # Return the initialized session data
 #     return user_session_data

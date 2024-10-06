@@ -63,5 +63,3 @@ def create_company_name_suggestions(
         suggested_company_name_2=name_2,
         suggested_company_name_3=name_3,
     )
-
-
