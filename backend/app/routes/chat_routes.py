@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.utils.chat_utils import getSessionName
-from app.services.user_service import get_current_user, get_user_by_oid, create_new_user
+# from app.utils.chat_utils import getSessionName
+from app.services.user_service import get_authenticated_user
 from app.db.database import get_db
 from app.schemas.chat_schemas import ChatRequest
 from app.schemas.user_schemas import UserCreate
 from app.services import chat_service
-from app.services.langchain_service import general_chat
 
 
 router = APIRouter(
@@ -16,16 +15,19 @@ router = APIRouter(
 
 
 @router.post("/chat")
-def llm_chat(
+def chat(
     request: ChatRequest,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(get_authenticated_user),
     db: Session = Depends(get_db),
 ):
     question = request.query
     chat_session_id = request.chatSessionId
     user_id = user["user_id"]
     # Retrieve or create the user in the database
-    user_record = get_user_by_oid(user_id, db)
+    user_record = chat_service.get_user_for_chat(db,user_id)
+    print("-"*100)
+    print(user_record)
+    print("-"*100)
     if not user_record:
         userCreateObj = UserCreate(
             user_id=user_id,
@@ -36,27 +38,24 @@ def llm_chat(
             provider_name=user["provider_name"],
             role=user["role"],
         )
-        user_record = create_new_user(db, userCreateObj)
+        user_id = chat_service.create_new_user_for_chat(db,userCreateObj)
 
-    session_name = getSessionName(question)
+    # session_name = getSessionName(question)
     # Check or create the chat session ID
     if not chat_session_id:
-        new_chat_session = chat_service.create_new_chat_session(
-            db, user_record.user_id, session_name
+        chat_session_id = chat_service.create_new_chat_session(
+            db, user_id, question
         )
-        chat_session_id = new_chat_session.session_id
-        db.add(new_chat_session)
-        db.commit()
 
     # Call the AI model to get the response
-    ai_response = general_chat(db, question, chat_session_id, user_id)
+    ai_response = chat_service.create_chat_response(db, question, chat_session_id, user_id)
 
     return {"response": ai_response, "newChatSessionId": chat_session_id}
 
 
 @router.post("/chat-history")
 def get_chat_history_titles(
-    user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    user: dict = Depends(get_authenticated_user), db: Session = Depends(get_db)
 ):
     user_id = user["user_id"]
     # Fetch chat history for the current user
@@ -69,7 +68,7 @@ def get_chat_history_titles(
 @router.get("/chat-history/{session_id}")
 def get_chat_history_for_session(
     session_id: str,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(get_authenticated_user),
     db: Session = Depends(get_db),
 ):
     user_id = user["user_id"]

@@ -2,8 +2,8 @@ import uuid
 from langchain.memory.buffer import ConversationBufferMemory
 
 
-def getSessionName(name: str) -> str:
-    return name[:60] if len(name) > 60 else name
+# def getSessionName(name: str) -> str:
+#     return name[:60] if len(name) > 60 else name
 
 
 def truncate_history(history, MAX_HISTORY_LENGTH):

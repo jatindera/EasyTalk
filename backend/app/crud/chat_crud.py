@@ -10,12 +10,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 # Create a new chat session
-def create_new_chat_session(db: Session, user_id: str, session_name: str = None):
+def create_new_chat_session(db: Session, user_id: str, session_name: str = None)->str:
     chat_session = ChatSession(user_id=user_id, session_name=session_name)
-    db.add(chat_session)
-    db.commit()
-    db.refresh(chat_session)
-    return chat_session
+    db.add(chat_session)  # Add the new chat session to the database session
+    db.commit()           # Commit the transaction to insert the new row into the database
+    db.refresh(chat_session)  # Refresh the chat_session to get the generated values from the database
+    return chat_session.session_id  # Return the newly generated session_id
 
 
 def get_chat_history_titles(db: Session, user_id: str):

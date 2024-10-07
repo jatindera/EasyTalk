@@ -46,6 +46,10 @@ logging.basicConfig(level=logging.DEBUG)
 ### Statefully manage chat history ###
 store = {}
 
+def clear_store():
+    global store  # Declare that we are using the global 'store'
+    store.clear()  # Modify the global dictionary
+
 
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     print(session_id)
@@ -79,7 +83,7 @@ genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 #     return suggestion.content
 
 
-def general_chat(db: Session, question: str, session_id: str, user_id: str):
+def generate_response(db: Session, question: str, session_id: str, user_id: str):
 
     prompt = ChatPromptTemplate.from_messages(
         [
