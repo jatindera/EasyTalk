@@ -60,12 +60,13 @@ def get_chat_history_titles(
     user_id = user["user_id"]
     # Fetch chat history for the current user
     chat_history_titles = chat_service.get_chat_history_titles(db, user_id)
+    print(chat_history_titles)
     if not chat_history_titles:
         return {"chat_history_titles": ""}
     return {"chat_history_titles": chat_history_titles}
 
 
-@router.get("/chat-history/{session_id}")
+@router.post("/chat-history/{session_id}")
 def get_chat_history_for_session(
     session_id: str,
     user: dict = Depends(get_authenticated_user),

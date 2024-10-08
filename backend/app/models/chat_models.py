@@ -19,7 +19,7 @@ class ChatHistory(Base):
     user_id = Column(
         String(255), ForeignKey("users.user_id"), nullable=True
     )  # User who initiated the query
-    role = Column(String, nullable=False)
+    role = Column(String(10), nullable=False)
     content = Column(Text, nullable=False)  # Store message as JSON
     created_at = Column(DateTime, default=datetime.now)
     # Relationships

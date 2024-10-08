@@ -41,3 +41,26 @@ export const fetchChatHistoryTitles = async (accessToken) => {
   }
 };
 
+export const fetchChatHistory = async (accessToken, sessionId) => {
+  const requestBody = {
+    sessionId,
+  };
+
+  try {
+    // Make a request to the Next.js API route to fetch chat history for the session
+    const response = await axios.post('/api/fetchChatHistory', requestBody, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`, // Pass the access token
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Return the chat history data
+    return response;
+  } catch (error) {
+    console.error('Error fetching chat history:', error);
+    throw error;
+  }
+};
+
+

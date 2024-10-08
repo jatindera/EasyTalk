@@ -20,18 +20,17 @@ def create_new_chat_session(db: Session, user_id: str, session_name: str = None)
 
 def get_chat_history_titles(db: Session, user_id: str):
     # Writing query because mappings, which returns dictionary, is not supported by ORM
-    # query = text(
-    #     "SELECT session_id, session_name FROM EasyTalk.chat_sessions WHERE user_id = :user_id order by created_at desc"
-    # )
-    # chat_history_titles = db.execute(query, {"user_id": user_id}).mappings().all()
-    # return chat_history_titles
-    return []
+    query = text(
+        "SELECT session_id, session_name FROM EasyTalk.chat_sessions WHERE user_id = :user_id order by created_at desc"
+    )
+    chat_history_titles = db.execute(query, {"user_id": user_id}).mappings().all()
+    return chat_history_titles
 
 
 def get_chat_history_for_session(db: Session, session_id, user_id: str) -> dict:
     # Writing query because mappings, which returns dictionary, is not supported by ORM
     query = text(
-        "SELECT query, answer FROM EasyTalk.chat_history WHERE session_id = :session_id and user_id = :user_id"
+        "SELECT role, content FROM chat_history WHERE session_id = :session_id and user_id = :user_id order by created_at"
     )
     chat_history = (
         db.execute(query, {"session_id": session_id, "user_id": user_id})

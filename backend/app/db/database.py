@@ -17,18 +17,19 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SCHEMA = os.getenv("DB_SCHEMA")
 
-DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Specify the target schema for all tables
-metadata = MetaData(schema=DB_SCHEMA)
+# metadata = MetaData(schema=DB_SCHEMA)
 
 engine = create_engine(DATABASE_URL)
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 SessionLocal = scoped_session(
     sessionmaker(autocommit=False, autoflush=False, bind=engine)
 )
-Base = declarative_base(metadata=metadata)
-
+# Base = declarative_base(metadata=metadata)
+Base = declarative_base()
 
 # Create tables if they don't exist
 def create_tables():
