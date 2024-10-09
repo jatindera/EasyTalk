@@ -5,6 +5,7 @@ from langchain_core.globals import set_llm_cache
 from langchain_core.caches import InMemoryCache  # allows caching the results
 from app.prompts.custom_prompts import company_name_crafter_template
 from langchain_core.output_parsers import StrOutputParser
+from fastapi.responses import StreamingResponse
 
 
 # from langchain_core.messages.system import SystemMessage
@@ -64,7 +65,7 @@ set_llm_cache(InMemoryCache())
 # llm = ChatOpenAI(model="gpt-3.5-turbo", max_tokens=200, temperature=0.7)
 
 ###################GOOGLE###################
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", temperature=0.7)
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", temperature=0.7, disable_streaming=False)
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 
@@ -108,15 +109,17 @@ def generate_response(db: Session, question: str, session_id: str, user_id: str)
         {"question": question},
         config={"configurable": {"session_id": session_id}},
     )
-    print("*" * 50)
-    print(store)
-    print("*" * 50)
+    # print("*" * 50)
+    # print(store)
+    # print("*" * 50)
     # Add the human message to the custom chat manager
     save_message(db, session_id, "human", question, user_id)
     # Add the AI response to the custom chat manager
     save_message(db, session_id, "ai", answer, user_id)
 
     return answer
+
+    
 
 
 def general_chat1(question: str, session_id: str):

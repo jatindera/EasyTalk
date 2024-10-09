@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { FaPlus, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import { FaPlus, FaPaperPlane } from 'react-icons/fa';
 import { AppContext } from '../../services/context/appContext';
 import styles from './Chat.module.css';
 import { sendMessage, fetchChatHistoryTitles, fetchChatHistory } from '../../services/chat/clientChatService'; // Removed fetchChatHistory as we'll define it here
@@ -105,9 +105,14 @@ const ChatSection = () => {
   // Scroll to bottom whenever messages change
   useEffect(() => {
     if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+      chatWindowRef.current.scrollTo({
+        top: chatWindowRef.current.scrollHeight,
+        behavior: 'smooth', // Adds smooth scrolling effect
+      });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
+  
+  
 
   return (
     <div className="d-flex flex-grow-1" style={{ overflow: 'hidden' }}>
@@ -143,11 +148,16 @@ const ChatSection = () => {
               <strong>{msg.sender === 'human' ? 'You: ' : 'AI: '}</strong> {msg.text}
             </div>
           ))}
+
           {isLoading && (
-            <div className={styles.fullScreenOverlay}>
-              <FaSpinner className={styles.fullScreenSpinner} /> Loading...
+            <div className={styles.typingIndicator}>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           )}
+
+
 
         </div>
         <div className={styles.inputContainer}>
