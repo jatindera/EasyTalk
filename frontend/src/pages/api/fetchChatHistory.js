@@ -3,7 +3,7 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { sessionId } = req.body; // Extract sessionId from the request body
   const accessToken = req.headers.authorization?.split(' ')[1]; // Get access token from Authorization header
-
+  console.log("Session id is......." + sessionId)
   if (!sessionId || !accessToken) {
     return res.status(400).json({ error: 'Session ID and access token are required.' });
   }

@@ -1,25 +1,24 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
-export const sendMessage = async (accessToken, message, chatSessionId = null) => {
-  const requestBody = {
-    query: message,
-    chatSessionId: chatSessionId || "", // Send the chatSessionId or empty string for the first request
+export const sendMessage = async (accessToken, message, chatSessionId = null, onStream) => {
+  // Create EventSource connection with accessToken as query parameter
+  const eventSource = new EventSource(`/api/chatService?query=${encodeURIComponent(message)}&chatSessionId=${chatSessionId || ''}&accessToken=${encodeURIComponent(accessToken)}`);
+
+  eventSource.onmessage = (event) => {
+    const data = event.data;
+    if (data) {
+      onStream(data); // Send the data to the frontend handler
+    }
   };
 
-  try {
-    const response = await axios.post('/api/chatService', requestBody, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error while calling Next.js API route:', error);
-    throw error;
-  }
+  eventSource.onerror = (error) => {
+    console.error('EventSource error:', error);
+    eventSource.close();
+  };
 };
+
+
 
 export const fetchChatHistoryTitles = async (accessToken) => {
   const requestBody = {
