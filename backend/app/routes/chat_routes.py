@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 # from app.utils.chat_utils import getSessionName
 from app.services.user_service import get_authenticated_user
 from app.db.database import get_db
@@ -24,10 +25,10 @@ def chat(
     chat_session_id = request.chatSessionId
     user_id = user["user_id"]
     # Retrieve or create the user in the database
-    user_record = chat_service.get_user_for_chat(db,user_id)
-    print("-"*100)
+    user_record = chat_service.get_user_for_chat(db, user_id)
+    print("-" * 100)
     print(user_record)
-    print("-"*100)
+    print("-" * 100)
     if not user_record:
         userCreateObj = UserCreate(
             user_id=user_id,
@@ -38,17 +39,18 @@ def chat(
             provider_name=user["provider_name"],
             role=user["role"],
         )
-        user_id = chat_service.create_new_user_for_chat(db,userCreateObj)
+        user_id = chat_service.create_new_user_for_chat(db, userCreateObj)
 
     # session_name = getSessionName(question)
     # Check or create the chat session ID
     if not chat_session_id:
-        chat_session_id = chat_service.create_new_chat_session(
-            db, user_id, question
-        )
+        chat_session_id = chat_service.create_new_chat_session(db, user_id, question)
 
     # Call the AI model to get the response
-    ai_response = chat_service.create_chat_response(db, question, chat_session_id, user_id)
+    ai_response = chat_service.create_chat_response(
+        db, question, chat_session_id, user_id
+    )
+    # print(ai_response)
 
     return {"response": ai_response, "newChatSessionId": chat_session_id}
 

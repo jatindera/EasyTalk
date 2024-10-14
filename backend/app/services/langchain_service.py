@@ -1,11 +1,9 @@
-from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 import google.generativeai as genai
 from langchain_core.globals import set_llm_cache
 from langchain_core.caches import InMemoryCache  # allows caching the results
-from app.prompts.custom_prompts import company_name_crafter_template
+from app.prompts.custom_prompts import title_prompt
 from langchain_core.output_parsers import StrOutputParser
-from fastapi.responses import StreamingResponse
 
 
 # from langchain_core.messages.system import SystemMessage
@@ -14,9 +12,7 @@ from langchain_core.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
 )
-from langchain.memory.buffer import ConversationBufferMemory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_postgres import PostgresChatMessageHistory
 
 from app.utils.chat_utils import truncate_history
 import os
@@ -28,11 +24,9 @@ from langchain_community.utilities import (
 )
 import logging
 from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from app.services import chat_service
+from langchain_core.messages import HumanMessage
 from sqlalchemy.orm import Session
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from app.crud.chat_crud import save_message
@@ -47,6 +41,19 @@ logging.basicConfig(level=logging.DEBUG)
 ### Statefully manage chat history ###
 store = {}
 
+
+# Set up caching
+set_llm_cache(InMemoryCache())
+###################CHATOPENAI###################
+# llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=200, temperature=0.7)
+
+###################GOOGLE###################
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-pro-latest", temperature=0.7, disable_streaming=False
+)
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+
 def clear_store():
     global store  # Declare that we are using the global 'store'
     store.clear()  # Modify the global dictionary
@@ -59,29 +66,16 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
     return store[session_id]
 
 
-# Set up caching
-set_llm_cache(InMemoryCache())
-###################CHATOPENAI###################
-# llm = ChatOpenAI(model="gpt-3.5-turbo", max_tokens=200, temperature=0.7)
+def generate_title(question: str) -> str:
 
-###################GOOGLE###################
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", temperature=0.7, disable_streaming=False)
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+    prompt_template = PromptTemplate(template=title_prompt)
 
+    # Create the LLM chain
+    llm_chain = prompt_template | llm
 
-# def generate_company_names(product_name: str, target_audience: str) -> str:
-#     print(product_name, target_audience)
-
-#     prompt_template = PromptTemplate(template=company_name_crafter_template)
-
-#     # Create the LLM chain
-#     llm_chain = prompt_template | llm
-
-#     # Invoke the chain with the given topic
-#     suggestion = llm_chain.invoke(
-#         {"product_name": product_name, "target_audience": target_audience}
-#     )
-#     return suggestion.content
+    # Invoke the chain with the given topic
+    title_suggestion = llm_chain.invoke({"question": question})
+    return title_suggestion.content
 
 
 def generate_response(db: Session, question: str, session_id: str, user_id: str):
@@ -90,7 +84,7 @@ def generate_response(db: Session, question: str, session_id: str, user_id: str)
         [
             (
                 "system",
-                "You are an assistant designed to answer user questions",
+                "You are an assistant designed to answer user questions in markdown format.",
             ),
             MessagesPlaceholder(variable_name="chat_history"),
             ("human", "{question}"),
@@ -103,7 +97,7 @@ def generate_response(db: Session, question: str, session_id: str, user_id: str)
         chain,
         get_session_history,
         input_messages_key="question",
-        history_messages_key="chat_history"
+        history_messages_key="chat_history",
     )
     answer = runnable_chain.invoke(
         {"question": question},
@@ -118,8 +112,6 @@ def generate_response(db: Session, question: str, session_id: str, user_id: str)
     save_message(db, session_id, "ai", answer, user_id)
 
     return answer
-
-    
 
 
 def general_chat1(question: str, session_id: str):
@@ -160,7 +152,7 @@ def general_chat1(question: str, session_id: str):
     tools = [duckduckgo_tool, llm_tool]
     agent_executor = create_react_agent(llm, tools)
 
-    response = agent_executor.invoke({"messages": [HumanMessage(content=query)]})
+    response = agent_executor.invoke({"messages": [HumanMessage(content=question)]})
     print(response["messages"])
     return {"": ""}
     # return response["messages"]

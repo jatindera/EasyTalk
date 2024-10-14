@@ -5,11 +5,14 @@ from app.models.user_models import User
 from app.schemas.user_schemas import UserCreate
 
 
-def get_user_by_userid(db: Session, user_id: str, )->UserCreate:
+def get_user_by_userid(
+    db: Session,
+    user_id: str,
+) -> UserCreate:
     return db.query(User).filter(User.user_id == user_id).first()
 
 
-def create_new_user(db: Session, user_create: UserCreate)->str:
+def create_new_user(db: Session, user_create: UserCreate) -> str:
     # Add the new user to the database session
     print("xxxxxxxxxxxxxxxxxyyyyyyyyyyyyyy")
     print(user_create)

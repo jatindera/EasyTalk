@@ -1,13 +1,34 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { FaPlus, FaPaperPlane } from 'react-icons/fa';
+import { FaPlus, FaPaperPlane, FaCopy, FaCheck } from 'react-icons/fa';
 import { AppContext } from '../../services/context/appContext';
 import styles from './Chat.module.css';
 import { sendMessage, fetchChatHistoryTitles, fetchChatHistory } from '../../services/chat/clientChatService'; // Removed fetchChatHistory as we'll define it here
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css'; // Import a CSS style for highlighting (you can choose different themes)
+
 
 
 
 const ChatSection = () => {
+
+  // NEW: Track which message has been copied
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
+
+  // Function to handle copying text
+  const handleCopy = (text, index) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedMessageIndex(index); // NEW: Set copied message index
+        setTimeout(() => setCopiedMessageIndex(null), 2000); // NEW: Reset after 2 seconds
+      })
+      .catch((error) => {
+        console.error('Error copying text:', error); // NEW: Error handling
+      });
+  };
+
+  
   const { accessToken } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -111,8 +132,8 @@ const ChatSection = () => {
       });
     }
   }, [messages, isLoading]);
-  
-  
+
+
 
   return (
     <div className="d-flex flex-grow-1" style={{ overflow: 'hidden' }}>
@@ -141,11 +162,54 @@ const ChatSection = () => {
       {/* Main Chat Interface */}
       <main className={`${styles.mainContent}`} style={{ position: 'relative' }}>
         <div
-          ref={chatWindowRef} // Attach reference to chat window
-          className={styles.chatWindow} style={{ backgroundColor: '#2c2c2c', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', position: 'relative' }}>
+          ref={chatWindowRef}
+          className={styles.chatWindow}
+          style={{ backgroundColor: '#2c2c2c', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', position: 'relative' }}
+        >
           {messages.map((msg, index) => (
-            <div key={index} className={`alert ${msg.sender === 'human' ? 'alert-primary' : 'alert-secondary'}`} style={{ backgroundColor: msg.sender === 'human' ? '#454545' : '#363636', color: '#ffffff' }}>
-              <strong>{msg.sender === 'human' ? 'You: ' : 'AI: '}</strong> {msg.text}
+            <div
+              key={index}
+              className={`alert ${msg.sender === 'human' ? 'alert-primary' : 'alert-secondary'}`}
+              style={{
+                backgroundColor: msg.sender === 'human' ? '#454545' : '#363636',
+                color: '#ffffff',
+                position: 'relative', // UPDATED: Added position for placing the copy icon
+                paddingRight: '70px',  // NEW: Add padding to ensure copy button doesn’t overlap content
+              }}
+            >
+              <strong>{msg.sender === 'human' ? 'You: ' : 'AI: '}</strong>
+              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                {msg.text}
+              </ReactMarkdown>
+              {msg.sender === 'ai' && ( // NEW: Only add the copy button for AI responses
+                <button
+                  onClick={() => handleCopy(msg.text, index)} // UPDATED: Call handleCopy with message text and index
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  title="Copy to clipboard" // NEW: Tooltip for better user experience
+                >
+                  {copiedMessageIndex === index ? ( // NEW: Toggle between copy and check icon
+                    <>
+                      <FaCheck />
+                      <span style={{ marginLeft: '5px' }}>Copied!</span> {/* NEW: Show "Copied!" text */}
+                    </>
+                  ) : (
+                    <>
+                      <FaCopy />
+                      <span style={{ marginLeft: '5px' }}>Copy</span> {/* NEW: Show "Copy code" text */}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ))}
 
@@ -156,9 +220,6 @@ const ChatSection = () => {
               <span></span>
             </div>
           )}
-
-
-
         </div>
         <div className={styles.inputContainer}>
           <input
@@ -174,9 +235,7 @@ const ChatSection = () => {
           </button>
         </div>
       </main>
-
     </div>
-
   );
 };
 

@@ -36,8 +36,8 @@ def get_authenticated_user(httpCredentails: HTTPBasicCredentials = Depends(httpB
         raise HTTPException(status_code=401, detail=f"Token validation error: {str(e)}")
 
 
-def get_user_by_userid(db:Session, user_id: str) -> UserCreate:
-        # Call the CRUD function to get the user by email
+def get_user_by_userid(db: Session, user_id: str) -> UserCreate:
+    # Call the CRUD function to get the user by email
     user_record = user_crud.get_user_by_userid(db, user_id)
     return user_record
 

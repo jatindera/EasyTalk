@@ -7,18 +7,18 @@ from app.schemas import user_schemas
 from app.schemas.user_schemas import UserCreate
 
 
-def getSessionName(name: str) -> str:
-    return name[:60] if len(name) > 60 else name
+def getSessionName(question: str) -> str:
+    title = langchain_service.generate_title(question)
+    return title
+    # return name[:60] if len(name) > 60 else name
 
 
-def create_new_chat_session(
-    db: Session, user_id: int, question: str
-) -> str:
+def create_new_chat_session(db: Session, user_id: int, question: str) -> str:
     print("==============Going to create new Chat Session Id==============")
     session_name = getSessionName(question)
     # Clear existing Chat Memory from Langchain. We only need to create Chat Memory per Chat Session
     langchain_service.clear_store()
-    #Create new Chat Session ID
+    # Create new Chat Session ID
     chat_session_id = chat_crud.create_new_chat_session(db, user_id, session_name)
     return chat_session_id
 
@@ -55,15 +55,19 @@ def fetch_chat_history_for_session(
 
     return []
 
+
 def get_user_for_chat(db: Session, user_id: str) -> UserCreate:
-    user_record = user_service.get_user_by_userid(db,user_id)
+    user_record = user_service.get_user_by_userid(db, user_id)
     return user_record
 
-def create_new_user_for_chat(db: Session, userCreate:user_schemas.UserCreate)->str:
-    user_id = user_service.create_new_user(db,userCreate)
+
+def create_new_user_for_chat(db: Session, userCreate: user_schemas.UserCreate) -> str:
+    user_id = user_service.create_new_user(db, userCreate)
     return user_id
 
 
-def create_chat_response(db: Session, question: str, chat_session_id: str, user_id: str):
+def create_chat_response(
+    db: Session, question: str, chat_session_id: str, user_id: str
+):
     answer = langchain_service.generate_response(db, question, chat_session_id, user_id)
     return answer

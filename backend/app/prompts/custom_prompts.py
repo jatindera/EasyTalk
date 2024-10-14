@@ -1,20 +1,11 @@
 # Define the prompt template
-company_name_crafter_template = """
-    Given the product description and target audience below, generate three creative 
-    and original company names. The names should reflect the product's unique value, 
-    resonate with the target audience, and be easy to remember and pronounce. Avoid 
-    common or generic terms, and focus on delivering distinctive and impactful names.
+title_prompt = """
+    Given the following user query, generate a concise and descriptive title 
+    that accurately captures the main topic or intent of the query. The title should be 
+    upto 5 words long and summarize the essence of the user's question or statement. 
+    Keep it short, clear, and engaging.
+    
+    User Query: '{question}'
 
-
-    INSTRUCTIONS: Don't add text like ```json
-    Product Description: {product_name}
-    Target Audience: {target_audience}
-    Please return the suggestions in the following JSON format only.
-    {{
-    "company_name_suggestions": [
-        "Name 1",
-        "Name 2",
-        "Name 3"
-    ]
-    }}
+    Instructions: Please reply in plain text only. Don't use markdown or other formats for this response.
     """
