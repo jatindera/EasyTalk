@@ -1,120 +1,95 @@
-# DB Schema
-## DB Name: <span style="color:green">EasyTalk</span>
+# EasyTalk
 
-| Table Name               | Purpose                                                                 |
-|--------------------------|-------------------------------------------------------------------------|
-| users                | Stores information about registered users.                              |
-| user_sessions        | Tracks active user sessions, including tokens and session metadata.     |
-| roles_permissions    | Defines roles and associated permissions for access control.            |
-| user_roles           | Defines roles and associated permissions for access control.            |
-| chat_sessions        | Manages ongoing chat sessions for users.                               |
-| chat_history         | Records the conversation history between users and AI.                 |
-| chat_metadata        | Stores metadata related to chat sessions (e.g., timestamps, context).   |
-| ai_models            | Contains information about available AI models used in chats.          |
+EasyTalk is a chat application that allows users to communicate effortlessly. The project leverages the Langchain framework for integrating Large Language Models (LLMs) into the chat experience. The project is built with a FastAPI-based backend and a React-based frontend. The application integrates various technologies to provide secure, scalable, and user-friendly chat experiences.
 
-# 1. Table: users
+## Features
+- **User Authentication**: Secure user authentication with OAuth2 and role-based access control (RBAC).
+- **Real-Time Chat**: Real-time messaging using FastAPI and EventSource, powered by LLM models like OpenAI, Google Gemini, and others, with the flexibility to use any preferred model.
+- **Session Management**: Maintains chat session history with unique session IDs.
+- **Scalable Frontend**: Built using Next.js, providing server-side rendering, extra security, and optimized performance.
+- **Backend API**: Developed with FastAPI to manage chat sessions, user authentication, and message handling.
 
-| Column Name   | Data Type   | Description                                                   |
-|---------------|-------------|---------------------------------------------------------------|
-| user_id       | INT         | Primary key, auto-incremented, unique identifier for each user.|
-| email         | VARCHAR(255)| User's email address, unique and required.                    |
-| first_name    | VARCHAR(100)| User's first name (optional).                                 |
-| last_name     | VARCHAR(100)| User's last name (optional).                                  |
-| provider      | VARCHAR(50) | Indicates which authentication provider is used (e.g., Google, Azure). |
-| provider_id   | VARCHAR(255)| Unique identifier from the authentication provider (e.g., Google ID). |
-| role          | VARCHAR(50) | User's role in the system (default is 'user', e.g., admin, user). |
-| created_at    | DATETIME    | Timestamp for when the user account was created.              |
-| updated_at    | DATETIME    | Timestamp for when the user account was last updated.         |
+## Project Structure
+### Backend
+- **Framework**: FastAPI, Langchain
+- **Directory**: `backend/app`
+- **Dependencies**: Listed in `requirements.txt`
+- **Environment Variables**: Example in `.env.template`
 
+The backend handles authentication, chat logic, and integrates with Azure AD for secure access. Key features include:
+- Secure authentication with tokens.
+- Chat history management using SQLAlchemy.
+- RESTful APIs for interacting with the frontend.
 
----
+### Frontend
+- **Framework**: React (Next.js)
+- **Directory**: `frontend/src`
+- **Dependencies**: Listed in `package.json`
+- **Environment Variables**: Configured in `.env`
 
-# 2. Table: user_sessions
+The frontend provides an intuitive user interface for chatting. Features include:
+- Role-based protected routes.
+- Integration with backend APIs to fetch chat data.
+- Responsive design for mobile and desktop.
 
-| Column Name   | Data Type     | Description                                                   |
-|---------------|---------------|---------------------------------------------------------------|
-| session_id    | INT           | Primary key, auto-incremented, unique identifier for each session. |
-| user_id       | INT           | Foreign key referencing the user who owns this session.         |
-| token         | VARCHAR(500)  | Unique token (e.g., JWT) for the session.  <span style="color:red">**Index**</span> created for faster lookups.                     |
-| ip_address    | VARCHAR(50)   | IP address of the user during the session (optional).           |
-| user_agent    | VARCHAR(255)  | Information about the user's device/browser (optional).         |
-| created_at    | DATETIME      | Timestamp for when the session was created.                    |
-| expires_at    | DATETIME      | Timestamp for when the session expires (optional).             |
+## Installation
+### Prerequisites
+- **Node.js** (for the frontend)
+- **Python 3.10+** (for the backend)
+- **Virtual Environment** for Python dependencies
 
-** An index is created on the token column to optimize performance during session validation and authentication, as tokens are frequently used for API requests instead of session IDs.
+### Backend Setup
+1. Navigate to the backend directory:
+   ```sh
+   cd backend
+   ```
+2. Create a virtual environment and activate it:
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+4. Set up environment variables by copying `.env.template` to `.env` and configuring values.
+5. Run the FastAPI server:
+   ```sh
+   uvicorn app.main:app --reload
+   ```
 
----
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```sh
+   cd frontend
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Set up environment variables by copying `.env` and configuring values.
+4. Run the development server:
+   ```sh
+   npm run dev
+   ```
 
-# 3. Table: roles_permissions
+## Usage
+- After setting up both the backend and frontend, open your browser and navigate to `http://localhost:3000` to access the EasyTalk application.
+- Sign in using your credentials, and start chatting in real-time.
 
-| Column Name   | Data Type     | Description                                                |
-|---------------|---------------|------------------------------------------------------------|
-| role_id       | INT           | Primary key, auto-incremented, unique identifier for each role. |
-| role_name     | VARCHAR(50)   | Name of the role (e.g., 'admin', 'user').                  |
-| permission    | VARCHAR(255)  | Permission level associated with the role (e.g., 'read', 'write', 'admin access'). |
-| created_at    | DATETIME      | Timestamp for when the role was created.                   |
-| updated_at    | DATETIME      | Timestamp for when the role was last updated.              |
+## Technologies Used
+- **LLM Framework**: Langchain
+- **Frontend**: React, Next.js
+- **Backend**: FastAPI, SQLAlchemy
+- **Authentication**: OAuth2, Azure AD
+- **Database**: MySQL
+- **Other**: Docker (for containerization), EventSource (for streaming)
 
+## Contributing
+Contributions are welcome! Please fork the repository and submit a pull request for review.
 
----
+## License
+This project is licensed under the MIT License.
 
-# 4. Table: users_roles
-
-| Column Name   | Data Type   | Description                                                   |
-|---------------|-------------|---------------------------------------------------------------|
-| user_id       | INT         | Foreign key referencing the `users.user_id`.                   |
-| role_id       | INT         | Foreign key referencing the `roles_permissions.role_id`.       |
-
-
----
-
-# 5. Table: chat_sessions
-
-| Column Name     | Data Type     | Description                                                      |
-|-----------------|---------------|------------------------------------------------------------------|
-| session_id      | INT           | Primary key, auto-incremented, unique identifier for each session.|
-| user_id         | INT           | Foreign key referencing the `users.user_id`.                      |
-| session_name    | VARCHAR(255)  | Optional name for the chat session (e.g., "Support Query").       |
-| session_status  | VARCHAR(50)   | Status of the session (e.g., 'active', 'completed').              |
-| created_at      | DATETIME      | Timestamp for when the chat session was created.                  |
-
-
----
-
-# 6. Table: chat_history
-
-| Column Name   | Data Type     | Description                                                   |
-|---------------|---------------|---------------------------------------------------------------|
-| message_id    | INT           | Primary key, auto-incremented, unique identifier for each message. |
-| session_id    | INT           | Foreign key referencing the `chat_sessions.session_id`.        |
-| user_id       | INT           | Foreign key referencing the `users.user_id`, nullable for AI responses. |
-| message_text  | TEXT          | The actual content of the message sent during the session.     |
-| sender        | VARCHAR(50)   | Indicates if the message was sent by 'user' or 'AI'.          |
-| message_type  | VARCHAR(50)   | Type of message (e.g., 'text', 'image', 'attachment').         |
-| timestamp     | DATETIME      | Timestamp for when the message was created.                   |
-
----
-
-# 7. Table: chat_metadata
-
-| Column Name    | Data Type     | Description                                                      |
-|----------------|---------------|------------------------------------------------------------------|
-| metadata_id    | INT           | Primary key, auto-incremented, unique identifier for each metadata record. |
-| session_id     | INT           | Foreign key referencing the `chat_sessions.session_id`.           |
-| ai_model       | VARCHAR(255)  | AI model used during the session (e.g., GPT-4, LLaMA).            |
-| total_duration | INT           | Total duration of the session in minutes.                        |
-| message_count  | INT           | Total number of messages exchanged during the session.            |
-| feedback       | VARCHAR(255)  | Optional feedback from the user regarding the session.            |
-| created_at     | DATETIME      | Timestamp for when the metadata was created.                     |
-
-
----
-
-# 8. Table: ai_models
-
-| Column Name  | Data Type     | Description                                                |
-|--------------|---------------|------------------------------------------------------------|
-| model_id     | INT           | Primary key, auto-incremented, unique identifier for each AI model. |
-| model_name   | VARCHAR(255)  | Name of the AI model (e.g., GPT-4, LLaMA).                 |
-| version      | VARCHAR(50)   | Version of the AI model (e.g., "v1", "v2").                |
-| created_at   | DATETIME      | Timestamp for when the AI model record was created.         |
+## Contact
+For questions or suggestions, feel free to open an issue or contact the project maintainers.
