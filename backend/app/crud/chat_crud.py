@@ -42,8 +42,12 @@ def get_chat_history_for_session(db: Session, session_id, user_id: str) -> dict:
     return chat_history
 
 
-def save_message(db: Session, session_id: str, role: str, content: str, user_id: str):
+def save_message(
+    db: Session, chat_session_id: str, user_id: str, role: str, content: str
+):
     db.add(
-        ChatHistory(session_id=session_id, role=role, content=content, user_id=user_id)
+        ChatHistory(
+            session_id=chat_session_id, user_id=user_id, role=role, content=content
+        )
     )
     db.commit()

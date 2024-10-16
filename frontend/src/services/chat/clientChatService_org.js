@@ -1,62 +1,32 @@
 import axios from 'axios';
 
-export const sendMessage = async (accessToken, message, chatSessionId = null, onChunkReceived) => {
+export const sendMessage = async (accessToken, message, chatSessionId = null) => {
   const requestBody = {
     query: message,
     chatSessionId: chatSessionId || "", // Send the chatSessionId or empty string for the first request
   };
 
   try {
-    // Make a request to the Next.js API route to handle the streaming response
-    const response = await fetch('/api/chatService', {
-      method: 'POST',
+    const response = await axios.post('/api/chatService', requestBody, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to get streaming response from Next.js API');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-
-    // Read and process the response in chunks
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-
-      // Immediately send each chunk to the onChunkReceived callback
-      if (onChunkReceived) {
-        onChunkReceived(chunk);
-      }
-    }
-
-    // Extract new chat session ID from the response header
-    const newChatSessionId = response.headers.get('newChatSessionId');
-
-    // Return session ID (if new)
-    return { newChatSessionId: newChatSessionId || chatSessionId };
+    return response.data;
   } catch (error) {
     console.error('Error while calling Next.js API route:', error);
     throw error;
   }
 };
 
-
-
-
-export const fetchChatHistoryTitles = (accessToken) => {
+export const fetchChatHistoryTitles = async (accessToken) => {
   const requestBody = {
   };
   try {
     // Make a request to the Next.js API route to fetch chat history
-    const response = axios.post('/api/chatHistoryTitles', requestBody, {
+    const response = await axios.post('/api/chatHistoryTitles', requestBody, {
       headers: {
         'Authorization': `Bearer ${accessToken}`, // Pass the access token
         'Content-Type': 'application/json',

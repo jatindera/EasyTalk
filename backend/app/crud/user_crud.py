@@ -14,8 +14,6 @@ def get_user_by_userid(
 
 def create_new_user(db: Session, user_create: UserCreate) -> str:
     # Add the new user to the database session
-    print("xxxxxxxxxxxxxxxxxyyyyyyyyyyyyyy")
-    print(user_create)
     db_user = User(
         user_id=user_create.user_id,
         email=user_create.email,

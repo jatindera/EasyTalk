@@ -7,6 +7,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css'; // Import a CSS style for highlighting (you can choose different themes)
+import { flushSync } from 'react-dom'; // Import flushSync
 
 
 
@@ -50,6 +51,7 @@ const ChatSection = () => {
 
   // Fetch chat history titles when accessToken is ready
   useEffect(() => {
+    console.log("useEffect triggered with chatSessionId:", chatSessionId);
     if (isTokenReady) {
       // Fetch previous chat history title and session id
       fetchChatHistoryTitles(accessToken)
@@ -63,7 +65,7 @@ const ChatSection = () => {
           console.error('Error fetching chat history:', error);
         });
     }
-  }, [isTokenReady, accessToken, chatSessionId]); // Run this effect only when the token is ready
+  }, [isTokenReady, accessToken, chatSessionId]);
 
   const loadChatHistory = (sessionId) => {
     if (accessToken && sessionId) {
@@ -85,29 +87,57 @@ const ChatSection = () => {
   };
 
 
+ 
+
   const handleSendMessage = () => {
     setInput(''); // Clear the input field immediately
     if (input.trim() !== '' && accessToken) {
       setIsLoading(true); // Start loading
-      sendMessage(accessToken, input, chatSessionId)
-        .then(data => {
-          const { response, newChatSessionId } = data;
-
-          // If a new session ID is returned, update both local storage and state
+  
+      // Add user's message to the chat
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { sender: 'human', text: input }
+      ]);
+  
+      let aiMessageIndex;
+  
+      // Handle incoming chunks with the onChunkReceived callback
+      sendMessage(accessToken, input, chatSessionId, (chunk) => {
+        // Ensure the UI updates immediately for each chunk received
+        setMessages((prevMessages) => {
+          // If this is the first chunk, add a new AI message
+          if (aiMessageIndex === undefined) {
+            aiMessageIndex = prevMessages.length; // Store index for the new AI message
+            return [
+              ...prevMessages,
+              { sender: 'ai', text: chunk }
+            ];
+          }
+  
+          // For subsequent chunks, append to the existing AI message
+          const updatedMessages = [...prevMessages];
+          updatedMessages[aiMessageIndex].text += chunk;
+  
+          return updatedMessages;
+        });
+  
+        // Scroll to the bottom after each update
+        if (chatWindowRef.current) {
+          chatWindowRef.current.scrollTo({
+            top: chatWindowRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }
+      })
+        .then(({ newChatSessionId }) => {
+          // If a new session ID is returned, update it
           if (newChatSessionId && newChatSessionId !== chatSessionId) {
             setChatSessionId(newChatSessionId);
+            console.log("Updated chatSessionId to:", newChatSessionId);
           }
-
-          // Update the message state with the new message and response
-          setMessages(prevMessages => [
-            ...prevMessages,
-            { sender: 'human', text: input },    // User's message
-            { sender: 'ai', text: response }    // AI's response
-          ]);
-
-          setInput(''); // Clear the input field
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error while calling FastAPI:', error);
         })
         .finally(() => {
@@ -115,6 +145,10 @@ const ChatSection = () => {
         });
     }
   };
+  
+  
+  
+  
 
   const handleNewChat = () => {
     // Reset the chat messages and chatSessionId for a new chat

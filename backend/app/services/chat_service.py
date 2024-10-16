@@ -14,20 +14,16 @@ def getSessionName(question: str) -> str:
 
 
 def create_new_chat_session(db: Session, user_id: int, question: str) -> str:
-    print("==============Going to create new Chat Session Id==============")
+    # print("==============Going to create new Chat Session Id==============")
     session_name = getSessionName(question)
     # Clear existing Chat Memory from Langchain. We only need to create Chat Memory per Chat Session
+    print("===================================")
+    print("Store memory has been cleared.")
     langchain_service.clear_store()
+    print("===================================")
     # Create new Chat Session ID
     chat_session_id = chat_crud.create_new_chat_session(db, user_id, session_name)
     return chat_session_id
-
-
-def create_chat_history(
-    db: Session, session_id: int, user_id: str, query: str, answer: str
-) -> dict:
-    history_row = chat_crud.create_chat_history(db, session_id, user_id, query, answer)
-    return history_row
 
 
 def get_chat_history_titles(db: Session, user_id: str):
@@ -66,8 +62,27 @@ def create_new_user_for_chat(db: Session, userCreate: user_schemas.UserCreate) -
     return user_id
 
 
-def create_chat_response(
+async def create_chat_response_astream(
     db: Session, question: str, chat_session_id: str, user_id: str
 ):
-    answer = langchain_service.generate_response(db, question, chat_session_id, user_id)
-    return answer
+    async for chunk in langchain_service.generate_response_astream(
+        db, question, chat_session_id, user_id
+    ):
+        yield chunk
+
+
+def save_message(
+    db: Session, chat_session_id: str, user_id: str, role: str, content: str
+):
+    # Depending on the sender, determine if it's a human question or an AI response
+    if role == "human":
+        query = content
+        answer = ""
+    elif role == "ai":
+        query = ""
+        answer = content
+    else:
+        raise ValueError("Sender must be either 'human' or 'ai'.")
+    
+    # Use chat_crud to save the message in the database
+    chat_crud.save_message(db, chat_session_id, user_id, role, content)
