@@ -12,4 +12,3 @@ router = APIRouter(
     prefix="/api/name-crafter",
     tags=["Company Name Crafter API"],
 )
-

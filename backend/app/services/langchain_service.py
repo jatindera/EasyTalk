@@ -46,7 +46,7 @@ store = {}
 # Set up caching
 # set_llm_cache(InMemoryCache())
 ###################CHATOPENAI###################
-# llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=800, temperature=0.7, streaming=True)
+# llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=200, temperature=0.7, streaming=True)
 
 ###################GOOGLE###################
 llm = ChatGoogleGenerativeAI(
@@ -69,7 +69,6 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
         print(f"Using existing session history for session_id: {session_id}")
     # print("Current store contents: ", store)  # Check the store content here
     return store[session_id]
-
 
 
 def generate_title(question: str) -> str:
@@ -109,7 +108,7 @@ async def generate_response_astream(
     print("*****************")
     print(store)
     print("*****************")
-    
+
     async for chunk in runnable_chain.astream(
         {"question": question},
         config={"configurable": {"session_id": session_id}},

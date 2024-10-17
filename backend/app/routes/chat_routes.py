@@ -52,19 +52,29 @@ async def chat(
 
     chat_service.save_message(db, chat_session_id, user_id, "human", question)
 
-    ai_response_chunks = []  # Use a list to collect the chunks
-
     # Streaming the response
     async def response_stream():
         ai_response = ""
+        buffer = ""
         async for chunk in chat_service.create_chat_response_astream(
             db, question, chat_session_id, user_id
         ):
-            ai_response_chunks.append(chunk)  # Collect each chunk
+            # ai_response is to be saved in database. It is partial stream so we need to make it complete using reg.
+            buffer += chunk
+            # Try to yield a complete sentence by checking for punctuation
+            if re.search(r"[.!?]\s$", buffer):
+                ai_response += buffer
+                buffer = ""
+
+            # Yield chunk without any change to display on frontend. On Frontend, It will
+            # magically be parsed as complete stream.
             yield chunk
 
-        # Join all chunks with a space, ensuring proper formatting
-        ai_response = " ".join(ai_response_chunks)
+        # Add the last incomplete chunk if any remaining
+
+        # Add any remaining buffer content
+        if buffer:
+            ai_response += buffer
         # Save the complete AI response after streaming ends
         chat_service.save_message(db, chat_session_id, user_id, "ai", ai_response)
 

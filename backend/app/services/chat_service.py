@@ -83,6 +83,6 @@ def save_message(
         answer = content
     else:
         raise ValueError("Sender must be either 'human' or 'ai'.")
-    
+
     # Use chat_crud to save the message in the database
     chat_crud.save_message(db, chat_session_id, user_id, role, content)
