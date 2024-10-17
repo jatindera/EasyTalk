@@ -7,7 +7,10 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css'; // Import a CSS style for highlighting (you can choose different themes)
-import { flushSync } from 'react-dom'; // Import flushSync
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 
 
 
@@ -16,6 +19,8 @@ const ChatSection = () => {
 
   // NEW: Track which message has been copied
   const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
+
+
 
   // Function to handle copying text
   const handleCopy = (text, index) => {
@@ -29,7 +34,7 @@ const ChatSection = () => {
       });
   };
 
-  
+
   const { accessToken } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -38,6 +43,25 @@ const ChatSection = () => {
   const [chatList, setChatList] = useState([]); // For sidebar chat list
   const [isTokenReady, setIsTokenReady] = useState(false); // To control when the token is ready
   const [isLoading, setIsLoading] = useState(false); // Loading state
+
+  const formatMessage = (text) => {
+    // Convert block math \[ ... \] to $$ ... $$
+    text = text.replace(/\\\[(.*?)\\\]/gs, '$$ $1 $$');
+  
+    // Convert inline math \( ... \) to $ ... $
+    text = text.replace(/\\\((.*?)\\\)/g, '$ $1 $');
+  
+    return text;
+  };
+  
+
+  const containsLatex = (text) => {
+    const latexPattern = /\$.*?\$|\$\$.*?\$\$|\\\(|\\\)|\\\[|\\\]/s;
+    return latexPattern.test(text);
+  };
+
+
+
 
   // Create a reference for the chat window
   const chatWindowRef = useRef(null);
@@ -87,21 +111,21 @@ const ChatSection = () => {
   };
 
 
- 
+
 
   const handleSendMessage = () => {
     setInput(''); // Clear the input field immediately
     if (input.trim() !== '' && accessToken) {
       setIsLoading(true); // Start loading
-  
+
       // Add user's message to the chat
       setMessages(prevMessages => [
         ...prevMessages,
         { sender: 'human', text: input }
       ]);
-  
+
       let aiMessageIndex;
-  
+
       // Handle incoming chunks with the onChunkReceived callback
       sendMessage(accessToken, input, chatSessionId, (chunk) => {
         // Ensure the UI updates immediately for each chunk received
@@ -114,14 +138,14 @@ const ChatSection = () => {
               { sender: 'ai', text: chunk }
             ];
           }
-  
+
           // For subsequent chunks, append to the existing AI message
           const updatedMessages = [...prevMessages];
           updatedMessages[aiMessageIndex].text += chunk;
-  
+
           return updatedMessages;
         });
-  
+
         // Scroll to the bottom after each update
         if (chatWindowRef.current) {
           chatWindowRef.current.scrollTo({
@@ -145,10 +169,10 @@ const ChatSection = () => {
         });
     }
   };
-  
-  
-  
-  
+
+
+
+
 
   const handleNewChat = () => {
     // Reset the chat messages and chatSessionId for a new chat
@@ -212,9 +236,25 @@ const ChatSection = () => {
               }}
             >
               <strong>{msg.sender === 'human' ? 'You: ' : 'AI: '}</strong>
-              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+
+              {containsLatex(msg.text) ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeHighlight, rehypeKatex]}
+                >
+                  {formatMessage(msg.text)}
+                </ReactMarkdown>
+              ) : (
+                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                  {msg.text}
+                </ReactMarkdown>
+              )}
+              {/* <ReactMarkdown
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[rehypeHighlight, rehypeKatex]}>
                 {msg.text}
-              </ReactMarkdown>
+             
+              </ReactMarkdown> */}
               {msg.sender === 'ai' && ( // NEW: Only add the copy button for AI responses
                 <button
                   onClick={() => handleCopy(msg.text, index)} // UPDATED: Call handleCopy with message text and index
