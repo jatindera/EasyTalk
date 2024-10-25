@@ -65,11 +65,16 @@ def clear_store():
 def get_session_history(user_id: str, session_id: str, db: Session) -> BaseChatMessageHistory:
     print(session_id, user_id, db)
     if session_id not in store:
+        print("===================================")
+        print("Store is cleared. Either it is a new sessin OR history is being pulled")
+        #CLEAR store
+        clear_store()
+        print("===================================")
         # Fetch chat history from the database
         chat_history = chat_service.get_chat_history_for_session(db, session_id, user_id)
-        print(("*" * 50) + (" Chat History"))
-        print(chat_history)
-        print("*" * 50)
+        # print(("*" * 50) + (" Chat History"))
+        # print(chat_history)
+        # print("*" * 50)
 
         # Convert the chat history into ChatMessageHistory object
         message_history = ChatMessageHistory()
