@@ -5,6 +5,7 @@ from langchain_core.globals import set_llm_cache
 from langchain_core.caches import InMemoryCache  # allows caching the results
 from app.prompts.custom_prompts import title_prompt
 from langchain_core.output_parsers import StrOutputParser
+from app.services import chat_service
 
 
 # from langchain_core.messages.system import SystemMessage
@@ -31,6 +32,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from app.crud.chat_crud import save_message
+from langchain_core.runnables.utils import ConfigurableFieldSpec
 
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -46,7 +48,7 @@ store = {}
 # Set up caching
 # set_llm_cache(InMemoryCache())
 ###################CHATOPENAI###################
-# llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=200, temperature=0.7, streaming=True)
+# llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=800, temperature=0.7, streaming=True)
 
 ###################GOOGLE###################
 llm = ChatGoogleGenerativeAI(
@@ -60,14 +62,34 @@ def clear_store():
     store.clear()  # Modify the global dictionary
 
 
-def get_session_history(session_id: str) -> BaseChatMessageHistory:
+def get_session_history(user_id: str, session_id: str, db: Session) -> BaseChatMessageHistory:
+    print(session_id, user_id, db)
     if session_id not in store:
-        store[session_id] = ChatMessageHistory()
+        # Fetch chat history from the database
+        chat_history = chat_service.get_chat_history_for_session(db, session_id, user_id)
+        print(("*" * 50) + (" Chat History"))
+        print(chat_history)
+        print("*" * 50)
+
+        # Convert the chat history into ChatMessageHistory object
+        message_history = ChatMessageHistory()
+        for message in chat_history:
+            if message["role"] == "human":
+                message_history.add_user_message(message["content"])
+            elif message["role"] == "ai":
+                message_history.add_ai_message(message["content"])
+        store[session_id] = message_history
+        # store[session_id] = ChatMessageHistory()
         # print(f"Creating new session history for session_id: {session_id}")
         # print(store)
     else:
         print(f"Using existing session history for session_id: {session_id}")
     # print("Current store contents: ", store)  # Check the store content here
+
+    print("*****************-----------STORE")
+    print(store)
+    print("*****************")
+
     return store[session_id]
 
 
@@ -104,13 +126,31 @@ async def generate_response_astream(
         get_session_history,
         input_messages_key="question",
         history_messages_key="chat_history",
+        history_factory_config=[
+        ConfigurableFieldSpec(
+            id="user_id",
+            annotation=str,
+            name="User ID",
+            description="Unique identifier for the user.",
+        ),
+        ConfigurableFieldSpec(
+            id="session_id",
+            annotation=str,
+            name="Session ID",
+            description="Unique identifier for a session.",
+        ),
+        ConfigurableFieldSpec(
+            id="db",
+            annotation=any,
+            name="Database Session",
+            description="Unique identifier for the Database Session.",
+        ),
+    ],
     )
-    print("*****************")
-    print(store)
-    print("*****************")
+    
 
     async for chunk in runnable_chain.astream(
         {"question": question},
-        config={"configurable": {"session_id": session_id}},
+        config={"configurable": {"user_id": user_id,"session_id": session_id, "db":db}},
     ):
         yield chunk

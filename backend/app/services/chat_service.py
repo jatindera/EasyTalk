@@ -18,7 +18,7 @@ def create_new_chat_session(db: Session, user_id: int, question: str) -> str:
     session_name = getSessionName(question)
     # Clear existing Chat Memory from Langchain. We only need to create Chat Memory per Chat Session
     print("===================================")
-    print("Store memory has been cleared.")
+    print("Store memory has been cleared for new session.")
     langchain_service.clear_store()
     print("===================================")
     # Create new Chat Session ID
@@ -32,6 +32,12 @@ def get_chat_history_titles(db: Session, user_id: str):
 
 
 def get_chat_history_for_session(db: Session, session_id: str, user_id: str):
+    # Clear existing Chat Memory from Langchain. We only need to create Chat Memory per Chat Session
+    print("===================================")
+    print("Store memory has been cleared before generating history from DB.")
+    langchain_service.clear_store()
+    print("===================================")
+    # Create new Chat Session ID
     chat_history = chat_crud.get_chat_history_for_session(db, session_id, user_id)
     return chat_history
 
